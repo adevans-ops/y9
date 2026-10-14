@@ -1,0 +1,1498 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Excel Quest</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: an Excel-style window (title bar, ribbon, formula bar, grid, sheet tabs) with a quest panel docked on the right */
+:root{
+  --xl:#217346; --xl-dark:#185c37; --xl-tint:#e6f2eb; --xl-line:#9fcbb2;
+  --chrome:#f3f3f3; --ribbon:#fafafa; --line:#d6d6d6; --text:#1f1f1f; --muted:#5f6461;
+  --grid-bg:#ffffff; --grid-line:#e2e2e2; --cell-text:#000000;
+  --head-bg:#f2f2f2; --head-text:#454545; --head-sel:#d2ecdd; --head-sel-text:#185c37;
+  --panel:#fbfcfb; --card:#ffffff; --gold:#b98900; --gold-bg:#fff4cc; --gold-line:#f0d27a;
+  --done:#1d7a46; --skip:#8a6d00; --warn-bg:#fff7e0;
+  --sel-tint:rgba(33,115,70,.13); --shadow:0 8px 28px rgba(20,40,30,.18);
+  --ui:"Segoe UI", "Aptos", Calibri, system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --quest:"Lexend", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --xl:#3fa06b; --xl-dark:#2f8a59; --xl-tint:#1f3529; --xl-line:#3c6b51;
+  --chrome:#1e1f1e; --ribbon:#262826; --line:#3a3d3b; --text:#ececec; --muted:#a9b0ac;
+  --head-bg:#2b2d2c; --head-text:#c9cfcb; --head-sel:#24513a; --head-sel-text:#d9f3e4;
+  --panel:#202321; --card:#2a2d2b; --gold:#f1c84b; --gold-bg:#3a3215; --gold-line:#6b5a1d;
+  --done:#58c48a; --skip:#e3c25a; --warn-bg:#3a3215; --shadow:0 8px 28px rgba(0,0,0,.5);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --xl:#3fa06b; --xl-dark:#2f8a59; --xl-tint:#1f3529; --xl-line:#3c6b51;
+  --chrome:#1e1f1e; --ribbon:#262826; --line:#3a3d3b; --text:#ececec; --muted:#a9b0ac;
+  --head-bg:#2b2d2c; --head-text:#c9cfcb; --head-sel:#24513a; --head-sel-text:#d9f3e4;
+  --panel:#202321; --card:#2a2d2b; --gold:#f1c84b; --gold-bg:#3a3215; --gold-line:#6b5a1d;
+  --done:#58c48a; --skip:#e3c25a; --warn-bg:#3a3215; --shadow:0 8px 28px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--chrome);color:var(--text);font-family:var(--ui);font-size:13px;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;min-height:0}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--xl);outline-offset:1px}
+
+/* title bar */
+.titlebar{background:var(--xl);color:#fff;display:flex;align-items:center;gap:12px;padding-block:6px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));flex-wrap:wrap}
+.logo{width:26px;height:26px;border-radius:4px;background:#fff;color:var(--xl);display:grid;place-items:center;font-weight:800;font-size:15px;flex:none}
+.qat{display:flex;gap:2px}
+.qat button{background:transparent;border:0;color:#fff;width:28px;height:26px;border-radius:4px;display:grid;place-items:center}
+.qat button:hover{background:rgba(255,255,255,.18)}
+.doc-title{font-weight:600;font-size:14px;white-space:nowrap}
+.doc-title span{opacity:.8;font-weight:400}
+.autosave{display:flex;align-items:center;gap:6px;font-size:12px;opacity:.95;white-space:nowrap}
+.autosave i{width:26px;height:14px;border-radius:8px;background:#fff;position:relative;display:inline-block}
+.autosave i::after{content:"";position:absolute;right:2px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--xl)}
+.spacer{flex:1}
+.xp-pill{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.18);padding:4px 10px 4px 6px;border-radius:999px;font-family:var(--quest);font-size:12px;white-space:nowrap;border:0;color:#fff}
+.xp-pill b{background:#ffd34d;color:#3b2c00;border-radius:999px;padding:1px 8px;font-weight:700}
+
+/* ribbon */
+.rtabs{display:flex;gap:2px;background:var(--chrome);border-bottom:1px solid var(--line);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));overflow-x:auto}
+.rtabs button{background:transparent;border:0;padding:7px 12px 6px;border-bottom:3px solid transparent;color:var(--text);white-space:nowrap}
+.rtabs button[aria-selected="true"]{border-bottom-color:var(--xl);color:var(--xl);font-weight:600}
+.rtabs button:disabled{opacity:.45;cursor:default}
+.ribbon{background:var(--ribbon);border-bottom:1px solid var(--line);display:flex;gap:0;overflow-x:auto;min-height:92px;
+  padding-left:max(8px, env(safe-area-inset-left, 0px));padding-right:max(8px, env(safe-area-inset-right, 0px))}
+.rgroup{display:flex;flex-direction:column;justify-content:space-between;padding:6px 10px 3px;border-right:1px solid var(--line);flex:none}
+.rgroup .glabel{text-align:center;font-size:11px;color:var(--muted);padding-top:2px;white-space:nowrap}
+.rrow{display:flex;gap:2px;align-items:center}
+.rcol{display:flex;flex-direction:column;gap:3px}
+.rb{background:transparent;border:1px solid transparent;border-radius:3px;min-width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 5px;color:var(--text)}
+.rb:hover{background:var(--xl-tint);border-color:var(--xl-line)}
+.rb.on{background:var(--xl-tint);border-color:var(--xl)}
+.rb.big{flex-direction:column;height:66px;min-width:52px;font-size:12px;gap:3px;padding:2px 6px}
+.rb.split{padding-right:0}
+.rb .caret{width:14px;height:100%;display:grid;place-items:center;border-left:1px solid transparent}
+.rb.split:hover .caret{border-left-color:var(--xl-line)}
+.rb svg{flex:none}
+.rsel{height:26px;border:1px solid var(--line);border-radius:3px;background:var(--card);padding:0 4px}
+.fnbtn{font-family:Consolas, "Cascadia Mono", monospace;font-size:12px}
+.swatchbar{display:block;width:16px;height:4px;margin-top:-2px}
+
+/* formula bar */
+.fbar{display:flex;align-items:center;gap:6px;background:var(--chrome);border-bottom:1px solid var(--line);padding-block:5px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+#namebox{width:86px;height:26px;border:1px solid var(--line);background:var(--card);padding:0 6px;border-radius:2px}
+.fx{color:var(--muted);font-style:italic;font-family:Georgia, serif;padding:0 6px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+#fbarInput{flex:1;min-width:0;height:26px;border:1px solid var(--line);background:var(--card);padding:0 8px;border-radius:2px;font-family:Consolas, "Cascadia Mono", monospace;font-size:13px}
+
+/* main */
+.work{flex:1;display:flex;min-height:0}
+.gridwrap{flex:1;min-width:0;overflow:auto;background:var(--grid-bg);position:relative;outline:none}
+.sheet{position:relative;display:inline-block;min-width:100%}
+table.grid{border-collapse:separate;border-spacing:0;table-layout:fixed;background:var(--grid-bg);color:var(--cell-text);font-family:var(--ui)}
+.grid th{background:var(--head-bg);color:var(--head-text);font-weight:400;font-size:12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);user-select:none;position:sticky;z-index:6}
+.grid thead th{top:0;height:22px;text-align:center}
+.grid th.rh{left:0;text-align:center;z-index:5;width:40px}
+.grid th.corner{left:0;top:0;z-index:7}
+.grid th.hs{background:var(--head-sel);color:var(--head-sel-text);font-weight:600;border-bottom-color:var(--xl)}
+.grid th.rh.hs{border-right-color:var(--xl);border-bottom-color:var(--line)}
+.grid td{position:relative;border-right:1px solid var(--grid-line);border-bottom:1px solid var(--grid-line);padding:0;vertical-align:bottom;height:24px;background-clip:padding-box;user-select:none;cursor:cell}
+.grid td.nor{border-right-color:transparent}
+.grid td.insel{box-shadow:inset 0 0 0 999px var(--sel-tint)}
+.cv{padding:1px 4px;white-space:nowrap;overflow:hidden;line-height:1.25}
+.cv.ovf{position:relative;z-index:3;overflow:hidden}
+.cv.err{color:#c00000}
+.bd{position:absolute;top:-1px;left:-1px;right:-1px;bottom:-1px;border:0 solid #000;pointer-events:none;z-index:2}
+#selbox{position:absolute;border:2px solid var(--xl);pointer-events:none;z-index:4;box-sizing:border-box}
+#fillh{position:absolute;width:8px;height:8px;background:var(--xl);border:1px solid #fff;z-index:9;cursor:crosshair;box-sizing:content-box}
+#copybox,#refbox,#fillbox{position:absolute;pointer-events:none;z-index:4;box-sizing:border-box}
+#copybox{border:2px dashed var(--xl);animation:ants 1s linear infinite}
+#refbox{border:2px solid #1e6fd9;background:rgba(30,111,217,.08)}
+#fillbox{border:1px dashed #555}
+@keyframes ants{50%{border-color:transparent}}
+#cellEditor{position:absolute;z-index:8;border:2px solid var(--xl);background:#fff;color:#000;padding:0 3px;outline:none;font-family:var(--ui);box-sizing:border-box;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+
+/* status + sheet tabs */
+.bottom{display:flex;align-items:stretch;background:var(--chrome);border-top:1px solid var(--line);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));min-height:32px;flex-wrap:wrap}
+.tabs{display:flex;gap:0;align-items:stretch}
+.stab{border:0;background:transparent;padding:6px 16px;display:flex;align-items:center;gap:6px;border-bottom:3px solid transparent;color:var(--text);white-space:nowrap}
+.stab[aria-selected="true"]{background:var(--grid-bg);color:var(--xl);font-weight:600;border-bottom-color:var(--xl)}
+[data-theme] .stab[aria-selected="true"],.stab[aria-selected="true"]{background:var(--card)}
+.stab.locked{color:var(--muted)}
+.stab .cnt{font-size:11px;color:var(--muted);font-weight:400}
+.status{margin-left:auto;display:flex;gap:16px;align-items:center;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;padding:4px 0}
+
+/* quest panel */
+.quest{width:350px;flex:none;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;font-family:var(--quest)}
+.qhead{padding:14px 16px 12px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.who{display:flex;gap:8px;align-items:center}
+.who label{font-size:12px;color:var(--muted)}
+#studentName{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:5px 8px;font-family:var(--quest)}
+.rank{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.rank .r{font-weight:700;font-size:16px}
+.rank .x{color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--xl),#7bd389);border-radius:6px;transition:width .6s ease}
+.nextrank{font-size:11px;color:var(--muted)}
+.qbody{flex:1;overflow:auto;padding:12px 12px 16px;display:flex;flex-direction:column;gap:10px}
+.story{font-size:12.5px;line-height:1.5;color:var(--muted);padding:0 4px}
+.story b{color:var(--text);font-weight:600;display:block;font-size:14px;margin-bottom:2px}
+.tasks{display:flex;flex-direction:column;gap:6px;list-style:none;margin:0;padding:0}
+.task{border:1px solid var(--line);background:var(--card);border-radius:8px}
+.task > button.th{width:100%;display:flex;gap:10px;align-items:center;background:transparent;border:0;padding:9px 10px;text-align:left;font-family:var(--quest)}
+.dot{width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:11px;font-weight:700;border:2px solid var(--line);color:var(--muted)}
+.task.done .dot{background:var(--done);border-color:var(--done);color:#fff}
+.task.skipped .dot{border-color:var(--skip);color:var(--skip);border-style:dashed}
+.task.current{border-color:var(--xl)}
+.task.current .dot{border-color:var(--xl);color:var(--xl)}
+.tt{flex:1;min-width:0;font-size:13.5px;font-weight:500}
+.tag{font-size:11px;color:var(--muted);white-space:nowrap}
+.task.done .tag{color:var(--done)}
+.task.skipped .tag{color:var(--skip)}
+.tb{padding:0 12px 12px 44px;display:flex;flex-direction:column;gap:9px;font-size:13px;line-height:1.5}
+.tb .bonus{font-size:12px;color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-line);border-radius:6px;padding:4px 8px}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:5px 10px;font-family:var(--quest);font-size:12px}
+.btn:hover{border-color:var(--xl)}
+.btn.primary{background:var(--xl);border-color:var(--xl);color:#fff}
+.btn.ghost{background:transparent}
+.help{border:1px dashed var(--xl-line);background:var(--xl-tint);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.help h4{margin:0;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--xl-dark)}
+:root[data-theme="dark"] .help h4{color:var(--done)}
+.help p{margin:0}
+.help code,.tb code{font-family:Consolas, "Cascadia Mono", monospace;background:var(--grid-bg);color:#000;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:12.5px;white-space:nowrap}
+.help ol{margin:0;padding-left:18px}
+.lockednote{border:1px solid var(--gold-line);background:var(--warn-bg);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.5}
+.qfoot{border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:6px;flex-wrap:wrap}
+
+/* popovers, toast, modal */
+.pop{position:fixed;z-index:50;background:var(--card);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);padding:8px}
+.pal{display:grid;grid-template-columns:repeat(10,18px);gap:3px}
+.pal button{width:18px;height:18px;border:1px solid rgba(0,0,0,.25);border-radius:2px;padding:0}
+.pal button:hover{outline:2px solid var(--xl)}
+.poplabel{font-size:11px;color:var(--muted);margin:6px 0 4px}
+.menu{display:flex;flex-direction:column;min-width:170px}
+.menu button{background:transparent;border:0;text-align:left;padding:6px 10px;border-radius:4px;display:flex;gap:8px;align-items:center}
+.menu button:hover{background:var(--xl-tint)}
+#toast{position:fixed;left:50%;bottom:calc(56px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%) translateY(20px);opacity:0;transition:.25s;z-index:60;background:#1d2b23;color:#fff;padding:10px 16px;border-radius:8px;font-family:var(--quest);font-size:13.5px;max-width:min(520px, calc(100vw - 32px));box-shadow:var(--shadow);pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.win{background:var(--xl)}
+.modalbg{position:fixed;inset:0;background:rgba(10,20,15,.45);z-index:70;display:grid;place-items:center;padding:16px}
+.modal{background:var(--card);color:var(--text);border-radius:12px;max-width:560px;width:100%;max-height:calc(100% - 32px);overflow:auto;box-shadow:var(--shadow);font-family:var(--quest)}
+.modal header{background:var(--xl);color:#fff;padding:18px 22px;border-radius:12px 12px 0 0}
+.modal header h2{margin:0;font-size:22px;text-wrap:balance}
+.modal header p{margin:4px 0 0;opacity:.9}
+.modal .mb{padding:16px 22px;display:flex;flex-direction:column;gap:12px;line-height:1.5}
+.modal .mf{padding:0 22px 18px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.cert{border:3px double var(--xl);border-radius:10px;padding:18px;text-align:center;display:flex;flex-direction:column;gap:6px}
+.cert .nm{font-size:26px;font-weight:700;color:var(--xl)}
+.plist{display:flex;flex-direction:column;gap:12px}
+.plist h3{margin:0 0 4px;font-size:14px}
+.plist table{width:100%;border-collapse:collapse;font-size:12.5px}
+.plist td{padding:3px 4px;border-bottom:1px solid var(--line)}
+.plist td:last-child{text-align:right;white-space:nowrap;color:var(--muted)}
+.ok{color:var(--done);font-weight:600}.sk{color:var(--skip);font-weight:600}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:65}
+
+@media (max-width: 900px){
+  body{overflow:auto}
+  #app{height:auto;min-height:100%}
+  .work{flex-direction:column}
+  .gridwrap{height:56vh;flex:none}
+  .quest{width:auto;border-left:0;border-top:1px solid var(--line)}
+  .qbody{overflow:visible}
+  .autosave,.doc-title span{display:none}
+}
+@media (prefers-reduced-motion: reduce){ #copybox{animation:none} .bar i{transition:none} #toast{transition:none} }
+</style>
+
+<div id="app">
+  <header class="titlebar">
+    <div class="logo" aria-hidden="true">X</div>
+    <div class="qat">
+      <button id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3 2 6l3 3"/><path d="M2 6h7.5a4 4 0 0 1 0 8H7"/></svg></button>
+      <button id="redoBtn" title="Redo (Ctrl+Y)" aria-label="Redo"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m11 3 3 3-3 3"/><path d="M14 6H6.5a4 4 0 0 0 0 8H9"/></svg></button>
+    </div>
+    <div class="doc-title">Excel Quest <span>· Year 9 IT</span></div>
+    <div class="autosave" title="Your work saves automatically in this browser"><i></i> Saved in this browser</div>
+    <div class="spacer"></div>
+    <button class="xp-pill" id="xpPill" title="See my progress"><b id="xpNum">0 XP</b><span id="rankName">Intern</span></button>
+  </header>
+
+  <nav class="rtabs" role="tablist" aria-label="Ribbon">
+    <button disabled title="Not needed for this quest">File</button>
+    <button role="tab" id="tabHome" aria-selected="true">Home</button>
+    <button disabled title="Not needed for this quest">Insert</button>
+    <button role="tab" id="tabFormulas" aria-selected="false">Formulas</button>
+    <button disabled title="Not needed for this quest">Data</button>
+    <button disabled title="Not needed for this quest">View</button>
+  </nav>
+
+  <div class="ribbon" id="ribbonHome">
+    <div class="rgroup">
+      <div class="rrow">
+        <button class="rb big" data-act="paste" title="Paste (Ctrl+V)"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="13" height="17" rx="1.5"/><rect x="8.5" y="3" width="6" height="4" rx="1" fill="var(--ribbon)"/><rect x="12" y="11" width="10" height="12" rx="1" fill="var(--card)"/></svg>Paste</button>
+        <div class="rcol">
+          <button class="rb" data-act="cut" title="Cut (Ctrl+X)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><path d="M5.6 10.4 12 2M10.4 10.4 4 2"/></svg>Cut</button>
+          <button class="rb" data-act="copy" title="Copy (Ctrl+C)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="1"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>Copy</button>
+        </div>
+      </div>
+      <div class="glabel">Clipboard</div>
+    </div>
+    <div class="rgroup">
+      <div class="rcol">
+        <div class="rrow">
+          <select class="rsel" id="fontName" title="Font" aria-label="Font"><option>Aptos Narrow</option></select>
+          <select class="rsel" id="fontSize" title="Font size" aria-label="Font size"></select>
+        </div>
+        <div class="rrow">
+          <button class="rb" data-act="bold" title="Bold (Ctrl+B)"><b style="font-size:15px">B</b></button>
+          <button class="rb" data-act="italic" title="Italic (Ctrl+I)"><i style="font-size:15px;font-family:Georgia,serif">I</i></button>
+          <button class="rb" data-act="underline" title="Underline (Ctrl+U)"><u style="font-size:15px">U</u></button>
+          <button class="rb split" data-act="borders" title="Borders"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12"/><path d="M8 2v12M2 8h12" stroke-dasharray="1.5 1.5"/></svg><span class="caret">▾</span></button>
+          <button class="rb split" data-act="fill" title="Fill Color"><span style="display:flex;flex-direction:column;align-items:center"><svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 7 8 2l5 5-5 5z"/><path d="M14 9c0 1.2-.6 2-1.2 2s-1.2-.8-1.2-2c0-.6 1.2-2 1.2-2s1.2 1.4 1.2 2z" fill="currentColor"/></svg><span class="swatchbar" id="fillSwatch" style="background:#FFFF00"></span></span><span class="caret">▾</span></button>
+          <button class="rb split" data-act="fcolor" title="Font Color"><span style="display:flex;flex-direction:column;align-items:center"><b style="font-size:14px;line-height:14px">A</b><span class="swatchbar" id="fcSwatch" style="background:#C00000"></span></span><span class="caret">▾</span></button>
+        </div>
+      </div>
+      <div class="glabel">Font</div>
+    </div>
+    <div class="rgroup">
+      <div class="rcol">
+        <div class="rrow">
+          <button class="rb" data-act="vtop" title="Top Align"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.4"><path d="M2 2h12M5 5h6M5 8h6"/></svg></button>
+          <button class="rb" data-act="vmid" title="Middle Align"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.4"><path d="M5 6h6M5 9h6M2 1.5h12M2 14.5h12" /></svg></button>
+          <button class="rb" data-act="vbot" title="Bottom Align"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.4"><path d="M5 8h6M5 11h6M2 14h12"/></svg></button>
+        </div>
+        <div class="rrow">
+          <button class="rb" data-act="hleft" title="Align Left"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.4"><path d="M2 3h12M2 6.5h8M2 10h12M2 13.5h8"/></svg></button>
+          <button class="rb" data-act="hcenter" title="Center"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.4"><path d="M2 3h12M4 6.5h8M2 10h12M4 13.5h8"/></svg></button>
+          <button class="rb" data-act="hright" title="Align Right"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.4"><path d="M2 3h12M6 6.5h8M2 10h12M6 13.5h8"/></svg></button>
+          <button class="rb" data-act="merge" title="Merge &amp; Center"><svg width="18" height="16" viewBox="0 0 18 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3" width="16" height="10"/><path d="m4 8h10M6 6 4 8l2 2M12 6l2 2-2 2"/></svg>Merge &amp; Center</button>
+        </div>
+      </div>
+      <div class="glabel">Alignment</div>
+    </div>
+    <div class="rgroup">
+      <div class="rcol">
+        <div class="rrow"><select class="rsel" id="numFmt" title="Number Format" aria-label="Number Format" style="width:128px"><option value="general">General</option><option value="number">Number</option><option value="currency">Currency</option><option value="percent">Percentage</option></select></div>
+        <div class="rrow">
+          <button class="rb" data-act="fmtCurrency" title="Currency (£)"><b>£</b></button>
+          <button class="rb" data-act="fmtPercent" title="Percent Style"><b>%</b></button>
+          <button class="rb" data-act="decInc" title="Increase Decimal" style="font-size:11px">.0→.00</button>
+          <button class="rb" data-act="decDec" title="Decrease Decimal" style="font-size:11px">.00→.0</button>
+        </div>
+      </div>
+      <div class="glabel">Number</div>
+    </div>
+    <div class="rgroup">
+      <div class="rrow">
+        <button class="rb big" data-act="autosum" title="AutoSum"><span style="font-size:24px;line-height:26px">Σ</span>AutoSum</button>
+      </div>
+      <div class="glabel">Editing</div>
+    </div>
+  </div>
+
+  <div class="ribbon" id="ribbonFormulas" hidden>
+    <div class="rgroup">
+      <div class="rrow"><button class="rb big" data-act="autosum" title="AutoSum"><span style="font-size:24px;line-height:26px">Σ</span>AutoSum</button></div>
+      <div class="glabel">Quick total</div>
+    </div>
+    <div class="rgroup">
+      <div class="rcol">
+        <div class="rrow">
+          <button class="rb fnbtn" data-fn="SUM" title="Adds numbers">SUM</button>
+          <button class="rb fnbtn" data-fn="AVERAGE" title="Finds the mean">AVERAGE</button>
+          <button class="rb fnbtn" data-fn="MIN" title="Smallest number">MIN</button>
+          <button class="rb fnbtn" data-fn="MAX" title="Largest number">MAX</button>
+          <button class="rb fnbtn" data-fn="COUNT" title="Counts cells with numbers">COUNT</button>
+        </div>
+        <div class="rrow">
+          <button class="rb fnbtn" data-fn="IF" title="Makes a decision">IF</button>
+          <button class="rb fnbtn" data-fn="COUNTIF" title="Counts cells that match a rule">COUNTIF</button>
+          <button class="rb fnbtn" data-fn="SUMIF" title="Adds cells that match a rule">SUMIF</button>
+          <button class="rb fnbtn" data-fn="ROUND" title="Rounds a number">ROUND</button>
+        </div>
+      </div>
+      <div class="glabel">Function Library</div>
+    </div>
+    <div class="rgroup">
+      <div class="rrow"><button class="rb big" data-act="showf" id="showfBtn" title="Show Formulas (Ctrl+`)"><span style="font-family:Consolas,monospace;font-size:16px;line-height:26px">fx</span>Show Formulas</button></div>
+      <div class="glabel">Formula Auditing</div>
+    </div>
+  </div>
+
+  <div class="fbar">
+    <input id="namebox" aria-label="Name Box" title="Name Box: type a cell like B5 and press Enter" autocomplete="off">
+    <span class="fx">fx</span>
+    <input id="fbarInput" aria-label="Formula bar" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="work">
+    <div class="gridwrap" id="gridwrap" tabindex="0" aria-label="Spreadsheet grid">
+      <div class="sheet" id="sheet">
+        <table class="grid" id="grid"></table>
+        <div id="selbox"></div><div id="fillh" title="Fill handle: drag to copy"></div>
+        <div id="copybox" hidden></div><div id="refbox" hidden></div><div id="fillbox" hidden></div>
+        <input id="cellEditor" hidden autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+    <aside class="quest" aria-label="Quest">
+      <div class="qhead">
+        <div class="who"><label for="studentName">Name</label><input id="studentName" placeholder="Type your name" maxlength="40"></div>
+        <div class="rank"><span class="r" id="rankBig">Intern</span><span class="x" id="xpBig">0 XP</span></div>
+        <div class="bar"><i id="xpBar" style="width:0%"></i></div>
+        <div class="nextrank" id="nextRank"></div>
+      </div>
+      <div class="qbody" id="qbody"></div>
+      <div class="qfoot">
+        <button class="btn" id="progressBtn">My progress</button>
+        <button class="btn ghost" id="keysBtn">Shortcuts</button>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="bottom">
+    <div class="tabs" id="sheetTabs" role="tablist" aria-label="Worksheets"></div>
+    <div class="status" id="status"><span>Ready</span></div>
+  </footer>
+</div>
+
+<canvas id="confetti"></canvas>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="popHost"></div>
+<div id="modalHost"></div>
+
+<script>
+(() => {
+'use strict';
+/* ---------- constants ---------- */
+const COLS = 14, ROWS = 40;
+const COLW = [40, 170, 96, 96, 96, 96, 96, 96, 96, 96, 96, 96, 96, 96];
+const ROWH = 24;
+const PT = 1.27; // pt to px
+const FONT = '"Segoe UI", "Aptos", Calibri, Arial, sans-serif';
+const STORE = 'excelQuest.deanclose.y9.v1';
+const XP_TASK = 100, XP_BONUS = 50;
+const HELP_COST = [0, 20, 50]; // XP taken off for nudge, steps, answer
+const RANKS = [[0,'Intern'],[300,'Assistant'],[700,'Analyst'],[1200,'Manager'],[1800,'Director'],[2400,'Managing Director'],[2900,'CEO']];
+const SIZES = [8,9,10,11,12,14,16,18,20,24,28,36];
+
+const PALETTE = [
+  ['#FFFFFF','White'],['#000000','Black'],['#E7E6E6','Light Gray'],['#44546A','Blue-Gray'],['#4472C4','Blue, Accent 1'],['#ED7D31','Orange, Accent 2'],['#A5A5A5','Gray'],['#FFC000','Gold'],['#5B9BD5','Light Blue, Accent 5'],['#70AD47','Green, Accent 6'],
+  ['#F2F2F2','White, Darker 5%'],['#7F7F7F','Black, Lighter 50%'],['#D0CECE','Light Gray, Darker 10%'],['#D6DCE4','Blue-Gray, Lighter 80%'],['#D9E1F2','Blue, Lighter 80%'],['#FCE4D6','Orange, Lighter 80%'],['#EDEDED','Gray, Lighter 80%'],['#FFF2CC','Gold, Lighter 80%'],['#DDEBF7','Light Blue, Lighter 80%'],['#E2EFDA','Green, Lighter 80%'],
+  ['#C00000','Dark Red'],['#FF0000','Red'],['#FFC000','Orange'],['#FFFF00','Yellow'],['#92D050','Light Green'],['#00B050','Green'],['#00B0F0','Light Blue'],['#0070C0','Blue'],['#002060','Dark Blue'],['#7030A0','Purple'],
+  ['#FFC7CE','Light Red'],['#C6EFCE','Light Green (Good)'],['#FFEB9C','Light Yellow (Neutral)']
+];
+
+/* ---------- address helpers ---------- */
+const colName = c => String.fromCharCode(65 + c);
+const colIdx = s => s.length === 1 ? s.charCodeAt(0) - 65 : (s.charCodeAt(0) - 64) * 26 + s.charCodeAt(1) - 65;
+const A = (r, c) => colName(c) + (r + 1);
+const K = (r, c) => r + ',' + c;
+function pa(a){ const m = /^\$?([A-Z]{1,2})\$?(\d+)$/i.exec(a.trim()); if(!m) return null; return { r: parseInt(m[2],10)-1, c: colIdx(m[1].toUpperCase()) }; }
+function pr(s){ const [x,y] = s.split(':'); const p = pa(x), q = y ? pa(y) : p; if(!p||!q) return null; return { r1:Math.min(p.r,q.r), c1:Math.min(p.c,q.c), r2:Math.max(p.r,q.r), c2:Math.max(p.c,q.c) }; }
+function cellsIn(rng){ const g = typeof rng === 'string' ? pr(rng) : rng; const out=[]; for(let r=g.r1;r<=g.r2;r++) for(let c=g.c1;c<=g.c2;c++) out.push([r,c]); return out; }
+const rangeName = s => (s.r1===s.r2&&s.c1===s.c2) ? A(s.r1,s.c1) : A(s.r1,s.c1)+':'+A(s.r2,s.c2);
+
+/* ---------- colour helpers ---------- */
+function hsl(hex){ if(!hex) return null; const n = parseInt(hex.replace('#',''),16); let r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255; const mx=Math.max(r,g,b),mn=Math.min(r,g,b); let h=0,s=0; const l=(mx+mn)/2; if(mx!==mn){ const d=mx-mn; s=l>.5?d/(2-mx-mn):d/(mx+mn); h = mx===r?((g-b)/d+(g<b?6:0)):mx===g?((b-r)/d+2):((r-g)/d+4); h*=60; } return {h,s,l}; }
+const isYellow = x => { const c=hsl(x); return c && c.h>=48 && c.h<=68 && c.s>.6 && c.l>=.4 && c.l<=.85; };
+const isDarkBlue = x => { const c=hsl(x); return c && c.h>=200 && c.h<=245 && c.s>.35 && c.l<=.32; };
+const isGreen = x => { const c=hsl(x); return c && c.h>=75 && c.h<=165 && c.s>.25 && c.l<.97; };
+const isRed = x => { const c=hsl(x); return c && (c.h<=15 || c.h>=335) && c.s>.4 && c.l<.95; };
+
+/* ---------- templates ---------- */
+function blankSheet(id){ return { id, cells:{}, merges:[], rowH:{} }; }
+function buildTemplates(){
+  const E = blankSheet('easy'), M = blankSheet('medium'), H = blankSheet('hard');
+  const put = (sh,a,v,x={}) => { const {r,c} = pa(a); sh.cells[K(r,c)] = Object.assign({ v:String(v), lock:true }, x); };
+  const row = (sh,a,arr,x) => { const {r,c} = pa(a); arr.forEach((v,i)=>{ if(v!==null) put(sh, A(r,c+i), v, x); }); };
+  const ins = (sh,a,t) => put(sh,a,t,{ ins:true, b:true, fc:'#217346' });
+
+  ins(E,'B1','Task 1: Merge B2:E2 into 1 cell. The heading should be "Welcome to my spreadsheet"');
+  ins(E,'B4','Task 2: Colour the background of these cells yellow, with dark blue text');
+  row(E,'B5',['Product','Price','Stock','Supplier']);
+  ins(E,'B7','Task 3: Put a black border around all cells in the kit store table. Make the column headings bold');
+  row(E,'B8',['Kit store','Issued','Returned','Missing']);
+  row(E,'B9',['Boots',24,22,2]); row(E,'B10',['Webbing',24,24,0]); row(E,'B11',['Water bottle',30,27,3]);
+  ins(E,'B13','Task 4: Copy these quarters and paste them starting in cell G14');
+  row(E,'B14',['Q1','Q2','Q3','Q4']);
+  ins(E,'B16','Task 5: Make these invoice column headings bold');
+  row(E,'B17',['Date','Client','Invoice no.','Paid?']);
+  ins(E,'B19','Task 6: Centre these values vertically and horizontally');
+  row(E,'B20',['North','East','South','West']); E.rowH[19] = 40;
+  ins(E,'B22','Task 7: Change the company values to font size 14 and make them italic');
+  row(E,'B23',['Mission','Vision','Values','Goals']);
+  ins(E,'B25','Task 8: Add a column called Total in G26 and work out each section\'s total');
+  row(E,'B26',['Section','Navigation','First aid','Drill','Fieldcraft']);
+  row(E,'B27',['Alpha',4,1,5,2]); row(E,'B28',['Bravo',3,2,4,2]); row(E,'B29',['Charlie',2,3,3,1]);
+  ins(E,'B31','Task 9: Format these merchandise prices as currency (£)');
+  row(E,'B32',[20,25,30,35]);
+  ins(E,'B34','Task 10: Format these expedition distances (km) as numbers with 2 decimal places');
+  row(E,'B35',[20.28392,25.12398,30.908,35.897231]);
+  ins(E,'B37','Task 11: Go to the Medium worksheet (tabs at the bottom of the screen)');
+
+  put(M,'B1','Pop-up coffee cart: Cheltenham Festival week',{ b:true, fs:14, fc:'#217346', ins:true });
+  put(M,'B2','Use formulas so the spreadsheet does the maths. Every formula starts with =',{ ins:true, fc:'#595959' });
+  row(M,'B4',['Item','Tue','Wed','Thu','Fri','Total','Average'],{ b:true, fill:'#E2EFDA' });
+  MED.items.forEach((it,i) => row(M, 'B'+(5+i), [it.name, ...it.sales]));
+  put(M,'B9','Daily total',{ b:true });
+  put(M,'B11','Highest daily total'); put(M,'B12','Lowest daily total');
+  row(M,'B14',['Item','Price','Cost each','Sold','Income','Profit'],{ b:true, fill:'#E2EFDA' });
+  MED.items.forEach((it,i) => { const r = 'B'+(15+i); row(M, r, [it.name]); put(M,'C'+(15+i), it.price, {fmt:'currency',dp:2}); put(M,'D'+(15+i), it.cost, {fmt:'currency',dp:2}); put(M,'E'+(15+i), it.sales.reduce((a,b)=>a+b,0)); });
+  put(M,'B19','Total',{ b:true });
+
+  put(H,'B1','CCF map-reading assessment',{ b:true, fs:14, fc:'#217346', ins:true });
+  put(H,'B2','Maximum score',{ b:true }); put(H,'C2',40,{ b:true, fill:'#FFF2CC', bt:1,bb:1,bl:1,br:1 });
+  row(H,'B4',['Cadet','Score','Percentage','Result','Award'],{ b:true, fill:'#D9E1F2' });
+  HARD.cadets.forEach((cd,i) => row(H, 'B'+(5+i), [cd.name, cd.score]));
+  put(H,'B14','Number passed'); put(H,'B15','Number failed'); put(H,'B16','Average score'); put(H,'B17','Top score');
+  return { easy:E, medium:M, hard:H };
+}
+const MED = { items: [
+  { name:'Flat white', sales:[120,145,160,210], price:3.5, cost:1.1 },
+  { name:'Hot chocolate', sales:[80,95,70,130], price:3, cost:0.9 },
+  { name:'Croissant', sales:[60,75,90,110], price:2.5, cost:1 },
+  { name:'Bacon roll', sales:[90,100,120,150], price:4.5, cost:1.8 }
+]};
+MED.items.forEach(it => { it.total = it.sales.reduce((a,b)=>a+b,0); it.avg = it.total/4; it.income = it.total*it.price; it.profit = (it.price-it.cost)*it.total; });
+MED.daily = [0,1,2,3].map(d => MED.items.reduce((a,it)=>a+it.sales[d],0));
+MED.income = MED.items.reduce((a,it)=>a+it.income,0); MED.profit = MED.items.reduce((a,it)=>a+it.profit,0);
+const HARD = { max:40, pass:20, cadets: [['Amira',34],['Ben',22],['Chen',18],['Dara',39],['Eli',27],['Fatima',12],['George',31],['Hana',25]].map(([name,score])=>({name,score})) };
+HARD.cadets.forEach(c => { c.pct = c.score/HARD.max; c.res = c.score>=HARD.pass?'Pass':'Fail'; c.award = c.score>=32?'Gold':c.score>=24?'Silver':'Bronze'; });
+
+/* ---------- quests ---------- */
+const nums = (S, rng, arr) => cellsIn(rng).every(([r,c],i) => S.numRC(r,c,arr[i]));
+const forms = (S, rng, fn) => cellsIn(rng).every(([r,c]) => S.isF(A(r,c)) && (!fn || S.uses(A(r,c), fn)));
+const QUESTS = {
+ easy: { title:'Easy', sub:'Make it look professional', story:'Every business, club and department needs a clear spreadsheet. Use the Home tab to format this one.', unlockAt:0,
+  tasks: [
+   { id:'e1', title:'Merge a heading', go:'B2:E2',
+     text:'Merge cells <b>B2 to E2</b> into one cell and type the heading <b>Welcome to my spreadsheet</b>.',
+     help:['Look for the Merge &amp; Center button in the Alignment group of the Home tab.',
+       '<ol><li>Click B2, hold <b>Shift</b> and click E2.</li><li>Click <b>Merge &amp; Center</b>.</li><li>Type the heading and press <b>Enter</b>.</li></ol>',
+       'Select <code>B2:E2</code> → Merge &amp; Center → type <code>Welcome to my spreadsheet</code> → Enter.'],
+     check: S => S.sh.merges.some(m => m.r1===m.r2 && m.c2-m.c1===3 && String(S.valRC(m.r1,m.c1)??'').trim().toLowerCase()==='welcome to my spreadsheet') },
+   { id:'e2', title:'Fill and font colour', go:'B5:E5',
+     text:'Colour the background of <b>B5:E5</b> yellow and make the text dark blue.',
+     help:['You need two buttons: the paint bucket (Fill Color) and the letter A (Font Color).',
+       '<ol><li>Select B5:E5.</li><li>Click the small arrow next to the paint bucket and choose <b>Yellow</b>.</li><li>Click the arrow next to the <b>A</b> and choose <b>Dark Blue</b>.</li></ol>',
+       'In the colour menus, Yellow and Dark Blue are on the third row (Standard Colors). Dark Blue is second from the right.'],
+     check: S => S.all('B5:E5', c => isYellow(c.fill) && isDarkBlue(c.fc)) },
+   { id:'e3', title:'Borders and bold', go:'B8:E11',
+     text:'The kit store table <b>B8:E11</b> needs a black border around every cell. Make the headings <b>Issued, Returned, Missing</b> bold.',
+     help:['Borders are in the Font group. The button looks like a square split into four.',
+       '<ol><li>Select B8:E11.</li><li>Click the arrow next to the Borders button and choose <b>All Borders</b>.</li><li>Select C8:E8 and press <b>Ctrl + B</b>.</li></ol>',
+       'Select <code>B8:E11</code> → Borders ▾ → All Borders. Then select <code>C8:E8</code> → Bold.'],
+     check: S => S.allEdges('B8:E11') && S.all('C8:E8', c => c.b) },
+   { id:'e4', title:'Copy and paste', go:'B14:E14',
+     text:'Copy the quarters in <b>B14:E14</b> and paste them starting in <b>G14</b>.',
+     help:['Copy is Ctrl + C and Paste is Ctrl + V. You only need to click the first cell where the paste should go.',
+       '<ol><li>Select B14:E14 and press <b>Ctrl + C</b>. A moving dashed line appears.</li><li>Click <b>G14</b>.</li><li>Press <b>Ctrl + V</b>.</li></ol>',
+       'Select <code>B14:E14</code> → Ctrl + C → click <code>G14</code> → Ctrl + V. G14:J14 should show Q1, Q2, Q3, Q4.'],
+     check: S => ['Q1','Q2','Q3','Q4'].every((q,i) => String(S.valRC(13,6+i)??'').trim().toUpperCase()===q) },
+   { id:'e5', title:'Bold headings', go:'B17:E17',
+     text:'Make the invoice column headings in <b>B17:E17</b> bold.',
+     help:['Bold is the <b>B</b> button. Select all four cells first.',
+       '<ol><li>Click B17 and drag to E17.</li><li>Press <b>Ctrl + B</b> or click <b>B</b>.</li></ol>',
+       'Select <code>B17:E17</code> → Ctrl + B.'],
+     check: S => S.all('B17:E17', c => c.b) },
+   { id:'e6', title:'Centre in the cell', go:'B20:E20',
+     text:'Centre <b>North, East, South, West</b> both across (horizontally) and up and down (vertically).',
+     help:['There are two sets of alignment buttons: one row for up and down, one row for left and right.',
+       '<ol><li>Select B20:E20.</li><li>Click <b>Middle Align</b> (top row of the Alignment group).</li><li>Click <b>Center</b> (bottom row).</li></ol>',
+       'Select <code>B20:E20</code> → Middle Align → Center.'],
+     check: S => S.all('B20:E20', c => c.ha==='center' && c.va==='middle') },
+   { id:'e7', title:'Font size and italic', go:'B23:E23',
+     text:'Change the company values in <b>B23:E23</b> to font size <b>14</b> and make them italic.',
+     help:['The font size box currently says 11. Italic is the slanted I.',
+       '<ol><li>Select B23:E23.</li><li>Choose <b>14</b> in the font size box.</li><li>Press <b>Ctrl + I</b>.</li></ol>',
+       'Select <code>B23:E23</code> → font size 14 → Ctrl + I.'],
+     check: S => S.all('B23:E23', c => c.fs===14 && c.i) },
+   { id:'e8', title:'Add a Total column', go:'G26:G29',
+     text:'Each cadet section scored points in four activities. Type <b>Total</b> in G26, then work out each section\'s total in <b>G27:G29</b>.',
+     bonus:'Use a formula in all three cells, not typed numbers.',
+     help:['A formula starts with <b>=</b>. The SUM function adds up a range of cells.',
+       '<ol><li>Click G26 and type <b>Total</b>.</li><li>Click G27 and type <b>=SUM(C27:F27)</b> then Enter.</li><li>Do the same for rows 28 and 29, or drag the small green square in the corner of G27 down to G29.</li></ol>',
+       'G26: <code>Total</code><br>G27: <code>=SUM(C27:F27)</code> gives 12<br>G28: <code>=SUM(C28:F28)</code> gives 11<br>G29: <code>=SUM(C29:F29)</code> gives 9'],
+     check: S => String(S.val('G26')??'').trim().toLowerCase()==='total' && nums(S,'G27:G29',[12,11,9]),
+     bonusCheck: S => forms(S,'G27:G29') },
+   { id:'e9', title:'Currency format', go:'B32:E32',
+     text:'Format the merchandise prices in <b>B32:E32</b> as currency so they show the £ sign.',
+     help:['Look in the Number group of the Home tab.',
+       '<ol><li>Select B32:E32.</li><li>Click the <b>£</b> button, or choose <b>Currency</b> in the Number Format box.</li></ol>',
+       'Select <code>B32:E32</code> → £. The first cell should show £20.00.'],
+     check: S => S.all('B32:E32', c => c.fmt==='currency') },
+   { id:'e10', title:'Two decimal places', go:'B35:E35',
+     text:'These expedition distances (km) have too many decimals. Format <b>B35:E35</b> as Number with <b>2 decimal places</b>.',
+     help:['The Number Format box says General at the moment.',
+       '<ol><li>Select B35:E35.</li><li>Choose <b>Number</b> in the Number Format box. It uses 2 decimal places.</li><li>If you need to, use Increase or Decrease Decimal.</li></ol>',
+       'Select <code>B35:E35</code> → Number Format → Number. The first cell should show 20.28.'],
+     check: S => S.all('B35:E35', c => c.fmt==='number' && (c.dp??2)===2) },
+   { id:'e11', title:'Next worksheet', nav:true, go:null,
+     text:'Click the <b>Medium</b> tab at the bottom of the screen. It opens when you have finished or skipped 8 Easy tasks.',
+     help:['Worksheet tabs sit at the bottom of the window, next to the status bar.', 'Click the tab named <b>Medium</b>.', 'Click <b>Medium</b> at the bottom left of the screen.'],
+     check: () => state.visited.medium }
+  ]},
+ medium: { title:'Medium', sub:'Formulas for a business', story:'You run a pop-up coffee cart at the Cheltenham Festival from Tuesday to Friday. Use formulas to find out how the business did. Do not retype the sales figures.', unlockAt:8, unlockFrom:'easy',
+  tasks: [
+   { id:'m1', title:'Total with SUM', go:'G5',
+     text:'In <b>G5</b>, use <b>SUM</b> to add up the Flat white sales for the four days.',
+     help:['Formulas start with =. SUM needs the first and last cell of the range, joined by a colon.',
+       '<ol><li>Click G5.</li><li>Type <b>=SUM(</b> then drag across C5 to F5.</li><li>Type <b>)</b> and press Enter. Or click G5 and press <b>AutoSum</b>.</li></ol>',
+       'G5: <code>=SUM(C5:F5)</code> gives 635.'],
+     check: S => S.num('G5', MED.items[0].total) && S.uses('G5','SUM') },
+   { id:'m2', title:'Fill down', go:'G5:G8',
+     text:'Copy your formula down to <b>G6:G8</b> to total the other items.',
+     help:['You do not need to type it three more times. The formula changes its row number as it moves.',
+       '<ol><li>Click G5.</li><li>Point at the small green square in the bottom right corner of the cell. The pointer turns into a +.</li><li>Drag down to G8 and let go.</li></ol>',
+       'G6: <code>=SUM(C6:F6)</code> 375 · G7: <code>=SUM(C7:F7)</code> 335 · G8: <code>=SUM(C8:F8)</code> 460'],
+     check: S => nums(S,'G6:G8', MED.items.slice(1).map(i=>i.total)) && forms(S,'G6:G8') },
+   { id:'m3', title:'Average sales', go:'H5:H8',
+     text:'In <b>H5:H8</b>, use <b>AVERAGE</b> to find the mean number sold per day for each item.',
+     help:['AVERAGE works like SUM: =AVERAGE(first cell:last cell).',
+       '<ol><li>Click H5 and type <b>=AVERAGE(C5:F5)</b>.</li><li>Press Enter.</li><li>Fill down to H8.</li></ol>',
+       'H5: <code>=AVERAGE(C5:F5)</code> 158.75, then fill down to H8.'],
+     check: S => nums(S,'H5:H8', MED.items.map(i=>i.avg)) && forms(S,'H5:H8','AVERAGE') },
+   { id:'m4', title:'Daily totals', go:'C9:F9',
+     text:'In <b>C9:F9</b>, total each day\'s sales.',
+     help:['This time the range goes down a column, not across a row.',
+       '<ol><li>Click C9 and type <b>=SUM(C5:C8)</b>.</li><li>Press Enter.</li><li>Drag the fill handle from C9 right to F9.</li></ol>',
+       'C9: <code>=SUM(C5:C8)</code> 350, then fill right. Friday should be 600.'],
+     check: S => nums(S,'C9:F9', MED.daily) && forms(S,'C9:F9') },
+   { id:'m5', title:'Best and worst day', go:'C11:C12',
+     text:'In <b>C11</b> use <b>MAX</b> to find the highest daily total. In <b>C12</b> use <b>MIN</b> to find the lowest.',
+     help:['MAX finds the largest number in a range. MIN finds the smallest.',
+       '<ol><li>C11: <b>=MAX(C9:F9)</b></li><li>C12: <b>=MIN(C9:F9)</b></li></ol>',
+       'C11: <code>=MAX(C9:F9)</code> gives 600 · C12: <code>=MIN(C9:F9)</code> gives 350'],
+     check: S => S.num('C11', Math.max(...MED.daily)) && S.uses('C11','MAX') && S.num('C12', Math.min(...MED.daily)) && S.uses('C12','MIN') },
+   { id:'m6', title:'Income', go:'F15:F18',
+     text:'Income = price × number sold. Put a formula in <b>F15:F18</b> and format the answers as currency.',
+     help:['In spreadsheets the multiply sign is <b>*</b> (Shift + 8).',
+       '<ol><li>Click F15 and type <b>=C15*E15</b>.</li><li>Fill down to F18.</li><li>Select F15:F18 and click <b>£</b>.</li></ol>',
+       'F15: <code>=C15*E15</code> gives £2,222.50. Fill down, then format F15:F18 as currency.'],
+     check: S => nums(S,'F15:F18', MED.items.map(i=>i.income)) && forms(S,'F15:F18') && S.all('F15:F18', c=>c.fmt==='currency') },
+   { id:'m7', title:'Profit per item', go:'G15:G18',
+     text:'Profit = (price − cost each) × sold. Put a formula in <b>G15:G18</b> and format as currency.',
+     help:['Brackets make Excel do the subtraction first, like BIDMAS in maths.',
+       '<ol><li>Click G15 and type <b>=(C15-D15)*E15</b>.</li><li>Fill down to G18.</li><li>Format as currency.</li></ol>',
+       'G15: <code>=(C15-D15)*E15</code> gives £1,524.00. Fill down, then click £.'],
+     check: S => nums(S,'G15:G18', MED.items.map(i=>i.profit)) && forms(S,'G15:G18') && S.all('G15:G18', c=>c.fmt==='currency') },
+   { id:'m8', title:'The bottom line', go:'F19:G19',
+     text:'Total the income in <b>F19</b> and the profit in <b>G19</b>. Show both as currency.',
+     bonus:'Make the whole Total row (B19:G19) bold so it stands out.',
+     help:['Use SUM again, on the column above each cell.',
+       '<ol><li>F19: <b>=SUM(F15:F18)</b></li><li>G19: <b>=SUM(G15:G18)</b></li><li>Format both as currency.</li></ol>',
+       'F19: <code>=SUM(F15:F18)</code> gives £6,255.00 · G19: <code>=SUM(G15:G18)</code> gives £4,056.00'],
+     check: S => S.num('F19', MED.income) && S.num('G19', MED.profit) && S.isF('F19') && S.isF('G19') && S.all('F19:G19', c=>c.fmt==='currency'),
+     bonusCheck: S => S.all('B19:G19', c=>c.b) }
+  ]},
+ hard: { title:'Hard', sub:'Logic and absolute references', story:'The CCF has run a map-reading assessment. The maximum score is in C2 and the pass mark is 20. Use formulas to mark the results and give out awards.', unlockAt:6, unlockFrom:'medium',
+  tasks: [
+   { id:'h1', title:'Percentages', go:'D5:D12',
+     text:'In <b>D5:D12</b>, work out each cadet\'s percentage: score ÷ maximum score (C2). Format as Percentage.',
+     bonus:'Use the absolute reference $C$2 so the formula fills down correctly.',
+     help:['If you fill down =C5/C2, the C2 moves to C3, C4... Dollar signs stop it moving.',
+       '<ol><li>Click D5 and type <b>=C5/$C$2</b>.</li><li>Fill down to D12.</li><li>Click <b>%</b> to format as a percentage.</li></ol>',
+       'D5: <code>=C5/$C$2</code> gives 85%. Fill down to D12 and click %.'],
+     check: S => nums(S,'D5:D12', HARD.cadets.map(c=>c.pct)) && forms(S,'D5:D12') && S.all('D5:D12', c=>c.fmt==='percent'),
+     bonusCheck: S => cellsIn('D5:D12').every(([r,c]) => S.f(A(r,c)).replace(/\s/g,'').toUpperCase().includes('$C$2')) },
+   { id:'h2', title:'Pass or fail', go:'E5:E12',
+     text:'The pass mark is 20. In <b>E5:E12</b>, use <b>IF</b> to show <b>Pass</b> or <b>Fail</b>.',
+     help:['IF has three parts: the test, what to show if true, what to show if false. Words need "speech marks".',
+       '<ol><li>Click E5.</li><li>Type <b>=IF(C5&gt;=20,"Pass","Fail")</b>.</li><li>Fill down to E12.</li></ol>',
+       'E5: <code>=IF(C5&gt;=20,"Pass","Fail")</code> then fill down. Chen and Fatima should show Fail.'],
+     check: S => cellsIn('E5:E12').every(([r,c],i) => String(S.valRC(r,c)??'').toLowerCase()===HARD.cadets[i].res.toLowerCase() && S.uses(A(r,c),'IF')) },
+   { id:'h3', title:'Count the results', go:'C14:C15',
+     text:'Use <b>COUNTIF</b> to count the passes in <b>C14</b> and the fails in <b>C15</b>.',
+     help:['COUNTIF needs a range and the thing to look for: =COUNTIF(range,"word").',
+       '<ol><li>C14: <b>=COUNTIF(E5:E12,"Pass")</b></li><li>C15: <b>=COUNTIF(E5:E12,"Fail")</b></li></ol>',
+       'C14: <code>=COUNTIF(E5:E12,"Pass")</code> gives 6 · C15: <code>=COUNTIF(E5:E12,"Fail")</code> gives 2'],
+     check: S => S.num('C14',6) && S.num('C15',2) && S.uses('C14','COUNTIF') && S.uses('C15','COUNTIF') },
+   { id:'h4', title:'Average and top score', go:'C16:C17',
+     text:'Find the average score in <b>C16</b> and the top score in <b>C17</b>.',
+     help:['You used these functions on the Medium sheet.',
+       '<ol><li>C16: <b>=AVERAGE(C5:C12)</b></li><li>C17: <b>=MAX(C5:C12)</b></li></ol>',
+       'C16: <code>=AVERAGE(C5:C12)</code> gives 26 · C17: <code>=MAX(C5:C12)</code> gives 39'],
+     check: S => S.num('C16',26) && S.uses('C16','AVERAGE') && S.num('C17',39) && S.uses('C17','MAX') },
+   { id:'h5', title:'Boss level: awards', go:'F5:F12',
+     text:'In <b>F5:F12</b>, award <b>Gold</b> for 32 or more, <b>Silver</b> for 24 or more, otherwise <b>Bronze</b>.',
+     help:['You can put one IF inside another. Check for Gold first, then Silver.',
+       '<ol><li>Start with <b>=IF(C5&gt;=32,"Gold",</b></li><li>Then add a second IF for Silver: <b>IF(C5&gt;=24,"Silver","Bronze"))</b></li><li>Fill down to F12.</li></ol>',
+       'F5: <code>=IF(C5&gt;=32,"Gold",IF(C5&gt;=24,"Silver","Bronze"))</code> then fill down.'],
+     check: S => cellsIn('F5:F12').every(([r,c],i) => String(S.valRC(r,c)??'').toLowerCase()===HARD.cadets[i].award.toLowerCase() && S.isF(A(r,c))) },
+   { id:'h6', title:'Colour code results', go:'E5:E12',
+     text:'Give every <b>Pass</b> cell in column E a light green fill and every <b>Fail</b> cell a light red fill.',
+     help:['Use Fill Color. Light Red and Light Green are on the bottom row of the colour menu.',
+       '<ol><li>Select E5:E6 (both Pass) and choose <b>Light Green</b>.</li><li>Do the same for E8:E9 and E11:E12.</li><li>Select E7, choose <b>Light Red</b>, then do E10.</li></ol>',
+       'Light green: E5, E6, E8, E9, E11, E12 · Light red: E7, E10'],
+     check: S => cellsIn('E5:E12').every(([r,c],i) => { const cl = S.sh.cells[K(r,c)]||{}; return HARD.cadets[i].res==='Pass' ? isGreen(cl.fill) : isRed(cl.fill); }) }
+  ]}
+};
+const SHEET_IDS = ['easy','medium','hard'];
+
+/* ---------- state ---------- */
+let state = loadState();
+function freshState(){ return { v:1, name:'', active:'easy', sheets: buildTemplates(), done:{}, bonus:{}, help:{}, xp:0, visited:{ easy:true }, celebrated:{}, sel:{} }; }
+function loadState(){
+  try { const raw = localStorage.getItem(STORE); if(raw){ const s = JSON.parse(raw); if(s && s.v===1 && s.sheets){ const f = freshState(); return Object.assign(f, s); } } } catch(e){}
+  return freshState();
+}
+let saveT = null;
+function save(){ clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch(e){} }, 150); }
+const cur = () => state.sheets[state.active];
+const undo = {}, redo = {};
+
+/* ---------- formula engine ---------- */
+const ERR = e => ({ err:e });
+const isErr = v => v !== null && typeof v === 'object' && 'err' in v;
+let cache = new Map();
+function literal(v){
+  const t = v.trim();
+  if(/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(t)) return parseFloat(t);
+  if(/^(true|false)$/i.test(t)) return t.toUpperCase()==='TRUE';
+  return v;
+}
+function cellValue(sh, r, c, stack){
+  const cell = sh.cells[K(r,c)];
+  if(!cell || cell.v == null || cell.v === '') return null;
+  const v = cell.v;
+  if(v[0] !== '=') return literal(v);
+  const ck = sh.id+'!'+K(r,c);
+  if(cache.has(ck)) return cache.get(ck);
+  if(stack.has(ck)) return ERR('#CIRC!');
+  stack.add(ck);
+  let res;
+  try { res = evalFormula(v.slice(1), sh, stack); } catch(e){ res = isErr(e) ? e : ERR('#NAME?'); }
+  stack.delete(ck);
+  if(res && res.rng) res = res.vals.length===1 ? res.vals[0] : ERR('#VALUE!');
+  if(res === null || res === undefined) res = 0;
+  cache.set(ck, res);
+  return res;
+}
+function tokenize(s){
+  const t = []; let i = 0;
+  while(i < s.length){
+    const ch = s[i];
+    if(/\s/.test(ch)){ i++; continue; }
+    if(ch === '"'){ let j=i+1, str=''; for(;;){ if(j>=s.length) throw ERR('#VALUE!'); if(s[j]==='"'){ if(s[j+1]==='"'){ str+='"'; j+=2; continue; } break; } str+=s[j++]; } t.push({t:'str',v:str}); i=j+1; continue; }
+    const rest = s.slice(i); let m;
+    if((m = rest.match(/^(\d+\.?\d*|\.\d+)(e[-+]?\d+)?/i))){ t.push({t:'num',v:parseFloat(m[0])}); i+=m[0].length; continue; }
+    if((m = rest.match(/^\$?[A-Za-z]{1,2}\$?\d+(:\$?[A-Za-z]{1,2}\$?\d+)?/))){ const after = rest[m[0].length]; if(!(after && /[A-Za-z_(]/.test(after))){ t.push({t:'ref',v:m[0].replace(/\$/g,'').toUpperCase()}); i+=m[0].length; continue; } }
+    if((m = rest.match(/^[A-Za-z_][A-Za-z0-9_.]*/))){ const w = m[0].toUpperCase(); i += m[0].length; while(s[i]===' ') i++;
+      if(s[i]==='('){ t.push({t:'fn',v:w}); i++; } else if(w==='TRUE'||w==='FALSE') t.push({t:'bool',v:w==='TRUE'}); else throw ERR('#NAME?'); continue; }
+    if((m = rest.match(/^(<=|>=|<>)/))){ t.push({t:'op',v:m[0]}); i+=2; continue; }
+    if('+-*/^&=<>%(),:'.includes(ch)){ t.push({t:'op',v:ch}); i++; continue; }
+    throw ERR('#NAME?');
+  }
+  return t;
+}
+function toNum(v){
+  if(isErr(v)) throw v;
+  if(v === null) return 0;
+  if(typeof v === 'number') return v;
+  if(typeof v === 'boolean') return v ? 1 : 0;
+  if(v && v.rng) throw ERR('#VALUE!');
+  const t = String(v).trim(); if(t!=='' && !isNaN(Number(t))) return Number(t);
+  throw ERR('#VALUE!');
+}
+const toStr = v => v === null ? '' : typeof v === 'boolean' ? (v?'TRUE':'FALSE') : typeof v === 'number' ? fmtGeneral(v) : String(v);
+function arith(a, b, op){
+  if(isErr(a)) return a; if(isErr(b)) return b;
+  let x, y; try { x = toNum(a); y = toNum(b); } catch(e){ return e; }
+  switch(op){ case '+': return x+y; case '-': return x-y; case '*': return x*y; case '/': return y===0 ? ERR('#DIV/0!') : x/y; case '^': return Math.pow(x,y); }
+}
+function compare(a, b, op){
+  if(isErr(a)) return a; if(isErr(b)) return b;
+  if(a && a.rng || b && b.rng) return ERR('#VALUE!');
+  if(a===null) a = typeof b==='string' ? '' : 0; if(b===null) b = typeof a==='string' ? '' : 0;
+  const rank = v => typeof v==='number'?0:typeof v==='string'?1:2;
+  let d;
+  if(rank(a)!==rank(b)) d = rank(a)-rank(b);
+  else if(typeof a==='string') d = a.toLowerCase().localeCompare(b.toLowerCase());
+  else d = (+a) - (+b);
+  return cmpOp(d, 0, op);
+}
+function cmpOp(x, y, op){ switch(op){ case '=': return Math.abs(x-y)<1e-12; case '<>': return Math.abs(x-y)>=1e-12; case '<': return x<y; case '>': return x>y; case '<=': return x<=y+1e-12; case '>=': return x>=y-1e-12; } return false; }
+function evalFormula(src, sh, stack){
+  const toks = tokenize(src); let p = 0;
+  const peek = () => toks[p];
+  const isOp = v => toks[p] && toks[p].t==='op' && toks[p].v===v;
+  const expect = v => { if(!isOp(v)) throw ERR('#NAME?'); p++; };
+  function refVal(ref){
+    if(ref.includes(':')){ const g = pr(ref); const vals=[]; for(let r=g.r1;r<=g.r2;r++) for(let c=g.c1;c<=g.c2;c++) vals.push(cellValue(sh,r,c,stack)); return { rng:true, vals, w:g.c2-g.c1+1 }; }
+    const q = pa(ref); return cellValue(sh, q.r, q.c, stack);
+  }
+  function comparison(){ let a = concat(); while(peek() && peek().t==='op' && ['=','<>','<','>','<=','>='].includes(peek().v)){ const op = toks[p++].v; a = compare(a, concat(), op); } return a; }
+  function concat(){ let a = additive(); while(isOp('&')){ p++; const b = additive(); a = isErr(a)?a:isErr(b)?b:toStr(a)+toStr(b); } return a; }
+  function additive(){ let a = mult(); while(isOp('+')||isOp('-')){ const op = toks[p++].v; a = arith(a, mult(), op); } return a; }
+  function mult(){ let a = unary(); while(isOp('*')||isOp('/')){ const op = toks[p++].v; a = arith(a, unary(), op); } return a; }
+  function unary(){ if(isOp('-')){ p++; return arith(0, unary(), '-'); } if(isOp('+')){ p++; return unary(); } return power(); }
+  function power(){ let a = postfix(); while(isOp('^')){ p++; a = arith(a, postfix(), '^'); } return a; }
+  function postfix(){ let a = primary(); while(isOp('%')){ p++; a = arith(a, 100, '/'); } return a; }
+  function primary(){
+    const tk = toks[p++]; if(!tk) throw ERR('#NAME?');
+    if(tk.t==='num'||tk.t==='str'||tk.t==='bool') return tk.v;
+    if(tk.t==='ref') return refVal(tk.v);
+    if(tk.t==='op' && tk.v==='('){ const v = comparison(); expect(')'); return v; }
+    if(tk.t==='fn'){ const args=[]; if(!isOp(')')){ do { args.push(comparison()); } while(isOp(',') && ++p); } expect(')'); return callFn(tk.v, args); }
+    throw ERR('#NAME?');
+  }
+  const v = comparison();
+  if(p < toks.length) throw ERR('#NAME?');
+  return v;
+}
+function flat(args){ const out=[]; for(const a of args){ if(a && a.rng) a.vals.forEach(v=>out.push({v, rng:true})); else out.push({v:a, rng:false}); } return out; }
+function numsOf(args){ const out=[]; for(const {v,rng} of flat(args)){ if(isErr(v)) throw v; if(rng){ if(typeof v==='number') out.push(v); } else out.push(toNum(v)); } return out; }
+function matcher(crit){
+  if(isErr(crit)) throw crit;
+  if(typeof crit === 'number') return v => typeof v==='number' && Math.abs(v-crit)<1e-12;
+  const s = toStr(crit); const m = s.match(/^(<=|>=|<>|<|>|=)?([\s\S]*)$/); const op = m[1]||'='; const rhs = m[2];
+  const rn = rhs.trim()!=='' && !isNaN(Number(rhs)) ? Number(rhs) : null;
+  const re = new RegExp('^' + rhs.toLowerCase().replace(/[.+^${}()|[\]\\]/g,'\\$&').replace(/\*/g,'.*').replace(/\?/g,'.') + '$');
+  return v => {
+    if(isErr(v)) return false;
+    if(rn !== null){ if(typeof v!=='number') return op==='<>'; return cmpOp(v, rn, op); }
+    const vs = v===null ? '' : toStr(v).toLowerCase();
+    if(op==='=') return re.test(vs); if(op==='<>') return !re.test(vs);
+    if(typeof v!=='string') return false; return cmpOp(vs.localeCompare(rhs.toLowerCase()), 0, op);
+  };
+}
+function truthy(v){ if(isErr(v)) throw v; if(typeof v==='boolean') return v; if(typeof v==='number') return v!==0; if(v===null) return false; const t=String(v).toUpperCase(); if(t==='TRUE') return true; if(t==='FALSE') return false; throw ERR('#VALUE!'); }
+function callFn(name, args){
+  switch(name){
+    case 'SUM': return numsOf(args).reduce((a,b)=>a+b,0);
+    case 'AVERAGE': { const n = numsOf(args); return n.length ? n.reduce((a,b)=>a+b,0)/n.length : ERR('#DIV/0!'); }
+    case 'MIN': { const n = numsOf(args); return n.length ? Math.min(...n) : 0; }
+    case 'MAX': { const n = numsOf(args); return n.length ? Math.max(...n) : 0; }
+    case 'COUNT': return flat(args).filter(({v,rng}) => typeof v==='number' || (!rng && v!==null && !isErr(v) && !isNaN(Number(v)) && String(v).trim()!=='')).length;
+    case 'COUNTA': return flat(args).filter(({v}) => v!==null && v!=='').length;
+    case 'COUNTIF': { if(args.length!==2) return ERR('#VALUE!'); const rg = args[0]&&args[0].rng ? args[0].vals : [args[0]]; const f = matcher(args[1]); return rg.filter(f).length; }
+    case 'SUMIF': { if(args.length<2) return ERR('#VALUE!'); const rg = args[0]&&args[0].rng ? args[0].vals : [args[0]]; const sr = args[2] ? (args[2].rng ? args[2].vals : [args[2]]) : rg; const f = matcher(args[1]); let s=0; rg.forEach((v,i)=>{ if(f(v) && typeof sr[i]==='number') s+=sr[i]; }); return s; }
+    case 'IF': { if(args.length<1||args.length>3) return ERR('#VALUE!'); return truthy(args[0]) ? (args.length>1 ? args[1] : true) : (args.length>2 ? args[2] : false); }
+    case 'AND': return flat(args).every(({v}) => truthy(v));
+    case 'OR': return flat(args).some(({v}) => truthy(v));
+    case 'NOT': return !truthy(args[0]);
+    case 'ROUND': { const n = toNum(args[0]), d = args.length>1 ? toNum(args[1]) : 0; const f = Math.pow(10,d); return Math.sign(n)*Math.round(Math.abs(n)*f+1e-9)/f; }
+    case 'ABS': return Math.abs(toNum(args[0]));
+    case 'CONCAT': case 'CONCATENATE': return flat(args).map(({v})=>toStr(v)).join('');
+    case 'UPPER': return toStr(args[0]).toUpperCase();
+    case 'LOWER': return toStr(args[0]).toLowerCase();
+  }
+  return ERR('#NAME?');
+}
+function shiftFormula(f, dr, dc){
+  return f.split(/("(?:[^"]|"")*")/).map((seg,i) => i%2 ? seg : seg.replace(/(\$?)([A-Z]{1,2})(\$?)(\d+)(?![A-Z0-9_(])/gi, (m,d1,col,d2,row,off,str) => {
+    if(off>0 && /[A-Z0-9_.]/i.test(str[off-1])) return m;
+    let c = colIdx(col.toUpperCase()), r = parseInt(row,10)-1;
+    if(!d1) c += dc; if(!d2) r += dr;
+    if(c<0 || r<0 || c>25) return '#REF!';
+    return d1 + colName(c) + d2 + (r+1);
+  })).join('');
+}
+function normaliseFormula(f){
+  let depth = 0; let inStr = false;
+  for(const ch of f){ if(ch==='"') inStr=!inStr; else if(!inStr){ if(ch==='(') depth++; else if(ch===')') depth--; } }
+  if(depth>0) f += ')'.repeat(depth);
+  return f.split(/("(?:[^"]|"")*")/).map((seg,i) => i%2 ? seg : seg.toUpperCase()).join('');
+}
+
+/* ---------- formatting ---------- */
+function fmtGeneral(n){ if(Number.isInteger(n)) return String(n); const s = String(parseFloat(n.toPrecision(11))); return s.length > 12 ? String(parseFloat(n.toPrecision(8))) : s; }
+function display(val, cell){
+  if(val === null) return '';
+  if(isErr(val)) return val.err;
+  if(typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
+  if(typeof val === 'number'){
+    const f = cell && cell.fmt || 'general', dp = cell && cell.dp;
+    if(f==='currency') return (val<0?'-':'') + '£' + Math.abs(val).toLocaleString('en-GB',{ minimumFractionDigits:dp??2, maximumFractionDigits:dp??2 });
+    if(f==='percent') return (val*100).toFixed(dp??0) + '%';
+    if(f==='number') return val.toFixed(dp??2);
+    return fmtGeneral(val);
+  }
+  return String(val);
+}
+function decimalsShown(val, cell){ const s = display(val, cell).replace(/[£%,]/g,''); const i = s.indexOf('.'); return i<0 ? 0 : s.length-i-1; }
+
+/* ---------- selection & editing state ---------- */
+let sel = { ar:1, ac:1, r1:1, c1:1, r2:1, c2:1 };
+let editing = null; // {r,c,mode,refIns}
+let clip = null;
+let showFormulas = false;
+let drag = null; // {type:'sel'|'ref'|'fill', ...}
+let tdAt = [];
+let mergeInfo = { cover:{}, anchor:{} };
+
+function buildMergeInfo(sh){
+  const cover = {}, anchor = {};
+  sh.merges.forEach(m => { anchor[K(m.r1,m.c1)] = m; for(let r=m.r1;r<=m.r2;r++) for(let c=m.c1;c<=m.c2;c++) if(r!==m.r1||c!==m.c1) cover[K(r,c)] = m; });
+  mergeInfo = { cover, anchor };
+}
+function mergeAt(r,c){ return mergeInfo.anchor[K(r,c)] || mergeInfo.cover[K(r,c)] || null; }
+function expandSel(s){
+  let {r1,c1,r2,c2} = s, changed = true;
+  while(changed){ changed = false; for(const m of cur().merges){ if(m.r1<=r2 && m.r2>=r1 && m.c1<=c2 && m.c2>=c1){ if(m.r1<r1){r1=m.r1;changed=true;} if(m.c1<c1){c1=m.c1;changed=true;} if(m.r2>r2){r2=m.r2;changed=true;} if(m.c2>c2){c2=m.c2;changed=true;} } } }
+  return { ...s, r1, c1, r2, c2 };
+}
+function setSel(ar, ac, fr = ar, fc = ac){
+  const m = mergeAt(ar,ac); if(m){ ar = m.r1; ac = m.c1; }
+  sel = expandSel({ ar, ac, r1:Math.min(ar,fr), c1:Math.min(ac,fc), r2:Math.max(ar,fr), c2:Math.max(ac,fc) });
+  if(m && fr===ar && fc===ac) sel = { ar, ac, r1:m.r1, c1:m.c1, r2:m.r2, c2:m.c2 };
+  state.sel[state.active] = sel;
+  updateSelUI();
+}
+
+/* ---------- rendering ---------- */
+const grid = document.getElementById('grid');
+const sheetEl = document.getElementById('sheet');
+const gridwrap = document.getElementById('gridwrap');
+const measureCtx = document.createElement('canvas').getContext('2d');
+
+function render(){
+  cache = new Map();
+  const sh = cur(); buildMergeInfo(sh);
+  const values = [];
+  for(let r=0;r<ROWS;r++){ values[r] = []; for(let c=0;c<COLS;c++) values[r][c] = cellValue(sh, r, c, new Set()); }
+  const isEmpty = (r,c) => { const cl = sh.cells[K(r,c)]; return (!cl || cl.v==null || cl.v==='') && !mergeInfo.anchor[K(r,c)] && !mergeInfo.cover[K(r,c)]; };
+  let h = '<colgroup><col style="width:40px">' + COLW.map(w=>`<col style="width:${w}px">`).join('') + '</colgroup>';
+  h += '<thead><tr><th class="corner" data-all="1"></th>' + COLW.map((w,c)=>`<th class="ch" data-c="${c}">${colName(c)}</th>`).join('') + '</tr></thead><tbody>';
+  for(let r=0;r<ROWS;r++){
+    const noRight = new Set(), ovfW = {};
+    for(let c=0;c<COLS;c++){
+      const cl = sh.cells[K(r,c)]; const v = values[r][c];
+      if(!cl || mergeInfo.anchor[K(r,c)] || mergeInfo.cover[K(r,c)]) continue;
+      const txt = showFormulas && cl.v && cl.v[0]==='=' ? cl.v : display(v, cl);
+      if(!txt) continue;
+      const align = cl.ha || (typeof v==='number' && !showFormulas ? 'right' : 'left');
+      if(align !== 'left') continue;
+      const fs = (cl.fs||11)*PT;
+      measureCtx.font = `${cl.i?'italic ':''}${cl.b?'bold ':''}${fs}px ${FONT}`;
+      const need = measureCtx.measureText(txt).width + 10;
+      if(need <= COLW[c]) continue;
+      let avail = COLW[c], k = c+1;
+      while(avail < need && k < COLS && isEmpty(r,k)){ avail += COLW[k]; k++; }
+      if(k > c+1){ for(let j=c;j<k-1;j++) noRight.add(j); ovfW[c] = avail; }
+    }
+    const rh = sh.rowH[r] || ROWH;
+    h += `<tr style="height:${rh}px"><th class="rh" data-r="${r}">${r+1}</th>`;
+    for(let c=0;c<COLS;c++){
+      const key = K(r,c);
+      if(mergeInfo.cover[key]) continue;
+      const cl = sh.cells[key] || {}; const v = values[r][c];
+      const m = mergeInfo.anchor[key];
+      const span = m ? ` colspan="${m.c2-m.c1+1}" rowspan="${m.r2-m.r1+1}"` : '';
+      const tdStyle = [];
+      if(cl.fill) tdStyle.push('background-color:'+cl.fill);
+      if(cl.va) tdStyle.push('vertical-align:'+({top:'top',middle:'middle',bottom:'bottom'})[cl.va]);
+      const isF = cl.v && cl.v[0]==='=';
+      const txt = showFormulas && isF ? cl.v : display(v, cl);
+      const align = cl.ha || (showFormulas && isF ? 'left' : typeof v==='number' ? 'right' : typeof v==='boolean' || isErr(v) ? 'center' : 'left');
+      const cs = [`text-align:${align}`];
+      if(cl.b) cs.push('font-weight:700'); if(cl.i) cs.push('font-style:italic'); if(cl.u) cs.push('text-decoration:underline');
+      if(cl.fs) cs.push(`font-size:${cl.fs*PT}px`); else cs.push(`font-size:${11*PT}px`);
+      if(cl.fc) cs.push('color:'+cl.fc);
+      let cvCls = 'cv';
+      if(ovfW[c]){ cvCls += ' ovf'; cs.push(`width:${ovfW[c]-1}px`); }
+      if(isErr(v) && !showFormulas) cvCls += ' err';
+      let bd = '';
+      if(cl.bt||cl.bb||cl.bl||cl.br) bd = `<i class="bd" style="border-top-width:${cl.bt?1:0}px;border-bottom-width:${cl.bb?1:0}px;border-left-width:${cl.bl?1:0}px;border-right-width:${cl.br?1:0}px"></i>`;
+      h += `<td data-r="${r}" data-c="${c}"${span} class="${noRight.has(c)?'nor':''}" style="${tdStyle.join(';')}"><div class="${cvCls}" style="${cs.join(';')}">${esc(txt)||'&nbsp;'}</div>${bd}</td>`;
+    }
+    h += '</tr>';
+  }
+  h += '</tbody>';
+  grid.innerHTML = h;
+  grid.style.width = (40 + COLW.reduce((a,b)=>a+b,0)) + 'px';
+  tdAt = [];
+  for(let r=0;r<ROWS;r++) tdAt[r] = [];
+  grid.querySelectorAll('td').forEach(td => { const r=+td.dataset.r, c=+td.dataset.c; const m = mergeInfo.anchor[K(r,c)]; if(m){ for(let i=m.r1;i<=m.r2;i++) for(let j=m.c1;j<=m.c2;j++) tdAt[i][j]=td; } else tdAt[r][c]=td; });
+  updateSelUI();
+  if(editing) positionEditor();
+  if(clip && clip.sheet===state.active) placeBox(document.getElementById('copybox'), clip.rng); else document.getElementById('copybox').hidden = true;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[ch]); }
+function rectOf(rng){
+  const a = tdAt[rng.r1][rng.c1], b = tdAt[rng.r2][rng.c2]; const base = sheetEl.getBoundingClientRect();
+  const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+  return { left: ra.left-base.left-1, top: ra.top-base.top-1, width: rb.right-ra.left+1, height: rb.bottom-ra.top+1 };
+}
+function placeBox(el, rng){ const r = rectOf(rng); Object.assign(el.style, { left:r.left+'px', top:r.top+'px', width:r.width+'px', height:r.height+'px' }); el.hidden = false; return r; }
+let prevSelTds = [], prevHeads = [];
+function updateSelUI(){
+  prevSelTds.forEach(td => td.classList.remove('insel')); prevSelTds = [];
+  prevHeads.forEach(th => th.classList.remove('hs')); prevHeads = [];
+  const multi = sel.r1!==sel.r2 || sel.c1!==sel.c2;
+  if(multi){ const seen = new Set(); for(let r=sel.r1;r<=sel.r2;r++) for(let c=sel.c1;c<=sel.c2;c++){ const td = tdAt[r][c]; if(td && !seen.has(td) && td !== tdAt[sel.ar][sel.ac]){ seen.add(td); td.classList.add('insel'); prevSelTds.push(td); } } }
+  grid.querySelectorAll('thead th.ch').forEach(th => { const c=+th.dataset.c; if(c>=sel.c1&&c<=sel.c2){ th.classList.add('hs'); prevHeads.push(th); } });
+  grid.querySelectorAll('th.rh').forEach(th => { const r=+th.dataset.r; if(r>=sel.r1&&r<=sel.r2){ th.classList.add('hs'); prevHeads.push(th); } });
+  const r = placeBox(document.getElementById('selbox'), sel);
+  const fh = document.getElementById('fillh'); fh.style.left = (r.left+r.width-5)+'px'; fh.style.top = (r.top+r.height-5)+'px'; fh.hidden = !!editing;
+  document.getElementById('namebox').value = A(sel.ar, sel.ac);
+  if(!editing) document.getElementById('fbarInput').value = (cur().cells[K(sel.ar,sel.ac)]||{}).v || '';
+  updateRibbonState(); updateStatus();
+}
+function scrollToCell(r,c){
+  const td = tdAt[r][c]; if(!td) return;
+  const wr = gridwrap.getBoundingClientRect(), tr = td.getBoundingClientRect();
+  if(tr.right > wr.right) gridwrap.scrollLeft += tr.right - wr.right + 20;
+  if(tr.left < wr.left + 40) gridwrap.scrollLeft -= (wr.left + 40) - tr.left + 10;
+  if(tr.bottom > wr.bottom) gridwrap.scrollTop += tr.bottom - wr.bottom + 20;
+  if(tr.top < wr.top + 24) gridwrap.scrollTop -= (wr.top + 24) - tr.top + 10;
+}
+function updateRibbonState(){
+  const cl = cur().cells[K(sel.ar, sel.ac)] || {};
+  const on = (act, v) => document.querySelectorAll(`[data-act="${act}"]`).forEach(b => b.classList.toggle('on', !!v));
+  on('bold', cl.b); on('italic', cl.i); on('underline', cl.u);
+  on('vtop', cl.va==='top'); on('vmid', cl.va==='middle'); on('vbot', cl.va==='bottom');
+  on('hleft', cl.ha==='left'); on('hcenter', cl.ha==='center'); on('hright', cl.ha==='right');
+  on('merge', !!mergeInfo.anchor[K(sel.ar,sel.ac)]);
+  on('showf', showFormulas);
+  document.getElementById('fontSize').value = String(cl.fs || 11);
+  document.getElementById('numFmt').value = cl.fmt || 'general';
+}
+function updateStatus(){
+  const st = document.getElementById('status');
+  const vals = []; let count = 0;
+  if(sel.r1!==sel.r2 || sel.c1!==sel.c2){
+    for(let r=sel.r1;r<=sel.r2;r++) for(let c=sel.c1;c<=sel.c2;c++){ if(mergeInfo.cover[K(r,c)]) continue; const v = cellValue(cur(), r, c, new Set()); if(v!==null && v!=='') count++; if(typeof v==='number') vals.push(v); }
+  }
+  if(vals.length){ const sum = vals.reduce((a,b)=>a+b,0); st.innerHTML = `<span>Average: ${fmtGeneral(+(sum/vals.length).toFixed(4))}</span><span>Count: ${count}</span><span>Sum: ${fmtGeneral(+sum.toFixed(6))}</span>`; }
+  else if(count>1) st.innerHTML = `<span>Count: ${count}</span>`;
+  else st.innerHTML = `<span>${editing ? (editing.mode==='enter'?'Enter':'Edit') : 'Ready'}</span>`;
+}
+
+/* ---------- mutations ---------- */
+function snapshot(){ const sh = cur(); return JSON.stringify({ cells:sh.cells, merges:sh.merges }); }
+function pushUndo(){ const id = state.active; (undo[id] = undo[id] || []).push(snapshot()); if(undo[id].length>80) undo[id].shift(); redo[id] = []; }
+function doUndo(isRedo){
+  const id = state.active, from = isRedo ? redo : undo, to = isRedo ? undo : redo;
+  const stack = from[id]; if(!stack || !stack.length){ toast(isRedo ? 'Nothing to redo' : 'Nothing to undo'); return; }
+  (to[id] = to[id] || []).push(snapshot());
+  const s = JSON.parse(stack.pop()); cur().cells = s.cells; cur().merges = s.merges;
+  afterChange(false);
+}
+function ensure(r,c){ const sh = cur(), k = K(r,c); return sh.cells[k] || (sh.cells[k] = {}); }
+function tidy(r,c){ const sh = cur(), k = K(r,c), cl = sh.cells[k]; if(cl && Object.keys(cl).every(p => cl[p]===undefined || cl[p]==='' || cl[p]===false)) delete sh.cells[k]; }
+function lockMsg(cl){ toast(cl.ins ? 'Instructions are locked. Click an empty cell to work in.' : 'This data is locked so your work can be checked. You can format it, but not retype it.'); }
+function setRaw(r, c, text){
+  const cl = ensure(r,c);
+  if(cl.lock){ lockMsg(cl); return false; }
+  let t = text;
+  if(t.startsWith('=') && t.length>1) t = normaliseFormula(t);
+  else {
+    const money = t.trim().match(/^£\s?([\d,]*\.?\d+)$/); const pct = t.trim().match(/^(-?[\d.]+)%$/); const comma = t.trim().match(/^-?\d{1,3}(,\d{3})+(\.\d+)?$/);
+    if(money){ t = money[1].replace(/,/g,''); cl.fmt = 'currency'; if(cl.dp==null) cl.dp = 2; }
+    else if(pct){ t = String(parseFloat(pct[1])/100); cl.fmt = 'percent'; }
+    else if(comma){ t = t.replace(/,/g,''); }
+  }
+  if(t === '') delete cl.v; else cl.v = t;
+  tidy(r,c); return true;
+}
+function eachSel(fn){ const seen = new Set(); for(let r=sel.r1;r<=sel.r2;r++) for(let c=sel.c1;c<=sel.c2;c++){ if(mergeInfo.cover[K(r,c)]) continue; const k = K(r,c); if(seen.has(k)) continue; seen.add(k); fn(r,c); } }
+function formatSel(fn){ pushUndo(); eachSel((r,c) => { fn(ensure(r,c), r, c); tidy(r,c); }); afterChange(); }
+function allSel(pred){ let ok = true; eachSel((r,c) => { if(!pred(cur().cells[K(r,c)]||{})) ok = false; }); return ok; }
+function clearSel(){
+  pushUndo(); let locked = false;
+  eachSel((r,c) => { const cl = cur().cells[K(r,c)]; if(!cl) return; if(cl.lock){ if(cl.v) locked = cl; return; } delete cl.v; tidy(r,c); });
+  if(locked) lockMsg(locked);
+  afterChange();
+}
+function applyBorders(kind){
+  pushUndo();
+  eachSel((r,c) => {
+    const cl = ensure(r,c); const m = mergeInfo.anchor[K(r,c)]; const r2 = m ? m.r2 : r, c2 = m ? m.c2 : c;
+    if(kind==='all'){ cl.bt=cl.bb=cl.bl=cl.br=1; }
+    else if(kind==='none'){ delete cl.bt; delete cl.bb; delete cl.bl; delete cl.br; }
+    else if(kind==='outside'){ if(r===sel.r1) cl.bt=1; if(r2===sel.r2) cl.bb=1; if(c===sel.c1) cl.bl=1; if(c2===sel.c2) cl.br=1; }
+    else if(kind==='bottom'){ if(r2===sel.r2) cl.bb=1; }
+    else if(kind==='top'){ if(r===sel.r1) cl.bt=1; }
+    tidy(r,c);
+  });
+  afterChange();
+}
+function mergeCenter(){
+  const sh = cur(); const s = sel;
+  const ex = sh.merges.find(m => m.r1===s.r1 && m.c1===s.c1 && m.r2===s.r2 && m.c2===s.c2);
+  if(ex){ pushUndo(); sh.merges = sh.merges.filter(m => m!==ex); afterChange(); toast('Cells unmerged'); return; }
+  if(s.r1===s.r2 && s.c1===s.c2){ toast('Select two or more cells first, then click Merge & Center.'); return; }
+  for(const [r,c] of cellsIn(s)){ const cl = sh.cells[K(r,c)]; if(cl && cl.lock && cl.v && !(r===s.r1&&c===s.c1)){ toast('You cannot merge over instructions or data. Choose empty cells.'); return; } }
+  pushUndo();
+  sh.merges = sh.merges.filter(m => !(m.r1<=s.r2 && m.r2>=s.r1 && m.c1<=s.c2 && m.c2>=s.c1));
+  let dropped = false;
+  cellsIn(s).forEach(([r,c]) => { if(r===s.r1&&c===s.c1) return; const cl = sh.cells[K(r,c)]; if(cl && cl.v){ delete cl.v; dropped = true; tidy(r,c); } });
+  ensure(s.r1,s.c1).ha = 'center';
+  sh.merges.push({ r1:s.r1, c1:s.c1, r2:s.r2, c2:s.c2 });
+  sel = { ...s, ar:s.r1, ac:s.c1 };
+  if(dropped) toast('Merging keeps only the value in the top-left cell.');
+  afterChange();
+}
+function copySel(cut){
+  const sh = cur(); const cells = [];
+  for(let r=sel.r1;r<=sel.r2;r++){ const row=[]; for(let c=sel.c1;c<=sel.c2;c++){ const cl = sh.cells[K(r,c)]; row.push(cl ? JSON.parse(JSON.stringify(cl)) : null); } cells.push(row); }
+  clip = { sheet:state.active, rng:{ r1:sel.r1, c1:sel.c1, r2:sel.r2, c2:sel.c2 }, cells, cut };
+  placeBox(document.getElementById('copybox'), clip.rng);
+  try { const tsv = cells.map((row,i)=>row.map((cl,j)=>display(cellValue(sh, sel.r1+i, sel.c1+j, new Set()), cl)).join('\t')).join('\n'); navigator.clipboard && navigator.clipboard.writeText(tsv).catch(()=>{}); } catch(e){}
+  toast(cut ? 'Cut. Click where it should go and press Ctrl + V.' : 'Copied. Click where it should go and press Ctrl + V.');
+}
+function pasteClip(){
+  if(!clip){ toast('Copy something first with Ctrl + C.'); return; }
+  const sh = cur(); pushUndo();
+  const h = clip.cells.length, w = clip.cells[0].length; let skipped = false;
+  if(clip.cut && clip.sheet===state.active){ for(let i=0;i<h;i++) for(let j=0;j<w;j++){ const k = K(clip.rng.r1+i, clip.rng.c1+j); const cl = sh.cells[k]; if(cl && !cl.lock) delete sh.cells[k]; } }
+  for(let i=0;i<h;i++) for(let j=0;j<w;j++){
+    const r = sel.ar+i, c = sel.ac+j; if(r>=ROWS || c>=COLS) continue;
+    const dest = sh.cells[K(r,c)]; if(dest && dest.lock){ if(dest.v) skipped = true; continue; }
+    const src = clip.cells[i][j];
+    if(!src){ delete sh.cells[K(r,c)]; continue; }
+    const cl = JSON.parse(JSON.stringify(src)); delete cl.lock; delete cl.ins;
+    if(cl.v && cl.v[0]==='=' && !clip.cut) cl.v = shiftFormula(cl.v, r-(clip.rng.r1+i), c-(clip.rng.c1+j));
+    sh.cells[K(r,c)] = cl;
+  }
+  sel = { ar:sel.ar, ac:sel.ac, r1:sel.ar, c1:sel.ac, r2:Math.min(ROWS-1, sel.ar+h-1), c2:Math.min(COLS-1, sel.ac+w-1) };
+  if(clip.cut) clip = null;
+  if(skipped) toast('Some cells were skipped because they hold locked data.');
+  afterChange();
+}
+function applyFill(src, toR, toC, down){
+  const sh = cur(); pushUndo();
+  const h = src.r2-src.r1+1, w = src.c2-src.c1+1;
+  const rs = down ? [src.r2+1, toR] : [src.r1, src.r2], cs = down ? [src.c1, src.c2] : [src.c2+1, toC];
+  for(let r=rs[0]; r<=rs[1]; r++) for(let c=cs[0]; c<=cs[1]; c++){
+    const sr = down ? src.r1 + ((r-src.r1) % h) : r, sc = down ? c : src.c1 + ((c-src.c1) % w);
+    const dest = sh.cells[K(r,c)]; if(dest && dest.lock) continue;
+    const s = sh.cells[K(sr,sc)];
+    if(!s){ delete sh.cells[K(r,c)]; continue; }
+    const cl = JSON.parse(JSON.stringify(s)); delete cl.lock; delete cl.ins;
+    if(cl.v && cl.v[0]==='=') cl.v = shiftFormula(cl.v, r-sr, c-sc);
+    sh.cells[K(r,c)] = cl;
+  }
+  sel = { ar:src.r1, ac:src.c1, r1:src.r1, c1:src.c1, r2: down ? toR : src.r2, c2: down ? src.c2 : toC };
+  afterChange();
+}
+function autoSum(){
+  const sh = cur(); const { ar, ac } = sel;
+  const isNum = (r,c) => typeof cellValue(sh,r,c,new Set())==='number' && !((sh.cells[K(r,c)]||{}).v||'').startsWith('=');
+  let f = '=SUM()';
+  if(ar>0 && isNum(ar-1,ac)){ let r = ar-1; while(r>0 && isNum(r-1,ac)) r--; f = `=SUM(${A(r,ac)}:${A(ar-1,ac)})`; }
+  else if(ac>0 && isNum(ar,ac-1)){ let c = ac-1; while(c>0 && isNum(ar,c-1)) c--; f = `=SUM(${A(ar,c)}:${A(ar,ac-1)})`; }
+  startEdit(f, 'edit');
+  toast('Check the range, then press Enter.');
+}
+function insertFn(name){
+  if(editing){ let t = getEditText(); if(!t.startsWith('=')) t = '=' + t; setEditText(t + name + '('); focusEditor(); }
+  else startEdit('=' + name + '(', 'enter');
+}
+
+/* ---------- editor ---------- */
+const editor = document.getElementById('cellEditor');
+const fbar = document.getElementById('fbarInput');
+function getEditText(){ return editor.value; }
+function setEditText(t){ editor.value = t; fbar.value = t; sizeEditor(); }
+function focusEditor(){ (editing && editing.src==='bar' ? fbar : editor).focus(); }
+function startEdit(initial, mode, src='cell'){
+  const cl = cur().cells[K(sel.ar,sel.ac)] || {};
+  if(cl.lock){ lockMsg(cl); if(src==='bar') fbar.blur(); return; }
+  editing = { r:sel.ar, c:sel.ac, mode, src, refIns:null };
+  editor.hidden = false;
+  const fs = (cl.fs||11)*PT; editor.style.fontSize = fs+'px'; editor.style.fontWeight = cl.b ? '700' : '400'; editor.style.fontStyle = cl.i ? 'italic' : 'normal';
+  setEditText(initial);
+  positionEditor();
+  document.getElementById('fillh').hidden = true;
+  if(src==='cell'){ editor.focus(); editor.setSelectionRange(editor.value.length, editor.value.length); }
+  updateStatus();
+}
+function positionEditor(){ if(!editing) return; const r = rectOf({ r1:editing.r, c1:editing.c, r2:editing.r, c2:editing.c }); const m = mergeInfo.anchor[K(editing.r,editing.c)]; const rr = m ? rectOf(m) : r; Object.assign(editor.style, { left:rr.left+'px', top:rr.top+'px', height:rr.height+1+'px', minWidth:rr.width+1+'px' }); sizeEditor(); }
+function sizeEditor(){ measureCtx.font = `${editor.style.fontStyle==='italic'?'italic ':''}${editor.style.fontWeight==='700'?'bold ':''}${editor.style.fontSize} ${FONT}`; editor.style.width = Math.max(parseFloat(editor.style.minWidth)||0, measureCtx.measureText(editor.value).width + 24) + 'px'; }
+function endEdit(){ editing = null; editor.hidden = true; document.getElementById('refbox').hidden = true; gridwrap.focus({ preventScroll:true }); }
+function commitEdit(move){
+  if(!editing) return;
+  const { r, c } = editing; const text = getEditText();
+  const before = (cur().cells[K(r,c)]||{}).v || '';
+  endEdit();
+  if(text !== before){ pushUndo(); setRaw(r,c,text); afterChange(); }
+  if(move) moveActive(move[0], move[1]); else updateSelUI();
+}
+function cancelEdit(){ endEdit(); updateSelUI(); }
+function refInsertable(){ if(!editing) return false; const t = getEditText(); if(!t.startsWith('=')) return false; if(editing.refIns) return true; const pos = (editing.src==='bar'?fbar:editor).selectionStart; return pos===t.length && /[=(+\-*/^,:<>&]$/.test(t); }
+function onEditKey(e){
+  if(e.key==='Enter'){ e.preventDefault(); commitEdit(e.shiftKey ? [-1,0] : [1,0]); }
+  else if(e.key==='Tab'){ e.preventDefault(); commitEdit(e.shiftKey ? [0,-1] : [0,1]); }
+  else if(e.key==='Escape'){ e.preventDefault(); cancelEdit(); }
+  else if(editing && editing.mode==='enter' && editing.src==='cell' && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key) && !getEditText().startsWith('=')){
+    e.preventDefault(); const d = { ArrowUp:[-1,0], ArrowDown:[1,0], ArrowLeft:[0,-1], ArrowRight:[0,1] }[e.key]; commitEdit(d);
+  }
+  else if(e.key==='F2' && editing){ e.preventDefault(); editing.mode = editing.mode==='enter' ? 'edit' : 'enter'; updateStatus(); }
+}
+editor.addEventListener('keydown', onEditKey);
+fbar.addEventListener('keydown', onEditKey);
+editor.addEventListener('input', () => { fbar.value = editor.value; if(editing) editing.refIns = null; sizeEditor(); document.getElementById('refbox').hidden = true; });
+fbar.addEventListener('input', () => { editor.value = fbar.value; if(editing) editing.refIns = null; sizeEditor(); });
+fbar.addEventListener('focus', () => { if(!editing){ startEdit((cur().cells[K(sel.ar,sel.ac)]||{}).v || '', 'edit', 'bar'); } else editing.src = 'bar'; });
+editor.addEventListener('focus', () => { if(editing) editing.src = 'cell'; });
+
+/* ---------- moving ---------- */
+function moveActive(dr, dc, extend){
+  if(extend){
+    // move the far corner
+    let fr = sel.ar===sel.r1 ? sel.r2 : sel.r1, fc = sel.ac===sel.c1 ? sel.c2 : sel.c1;
+    fr = Math.max(0, Math.min(ROWS-1, fr+dr)); fc = Math.max(0, Math.min(COLS-1, fc+dc));
+    sel = expandSel({ ar:sel.ar, ac:sel.ac, r1:Math.min(sel.ar,fr), c1:Math.min(sel.ac,fc), r2:Math.max(sel.ar,fr), c2:Math.max(sel.ac,fc) });
+    state.sel[state.active] = sel; updateSelUI(); scrollToCell(fr, fc); return;
+  }
+  let r = sel.ar, c = sel.ac; const m = mergeAt(r,c);
+  if(m){ if(dr>0) r = m.r2; if(dc>0) c = m.c2; }
+  r = Math.max(0, Math.min(ROWS-1, r+dr)); c = Math.max(0, Math.min(COLS-1, c+dc));
+  setSel(r,c); scrollToCell(r,c);
+}
+
+/* ---------- mouse ---------- */
+function cellFromEvent(e){ const el = document.elementFromPoint(e.clientX, e.clientY); const td = el && el.closest && el.closest('td'); if(!td || !grid.contains(td)) return null; return { r:+td.dataset.r, c:+td.dataset.c }; }
+sheetEl.addEventListener('mousedown', e => {
+  if(e.button !== 0) return;
+  if(e.target.id === 'fillh'){ e.preventDefault(); drag = { type:'fill', src:{ ...sel } }; return; }
+  if(e.target === editor) return;
+  const th = e.target.closest('th');
+  if(th){
+    e.preventDefault(); if(editing) commitEdit();
+    if(th.dataset.all){ sel = { ar:0, ac:0, r1:0, c1:0, r2:ROWS-1, c2:COLS-1 }; updateSelUI(); }
+    else if(th.dataset.c){ const c = +th.dataset.c; sel = { ar:0, ac:c, r1:0, c1:c, r2:ROWS-1, c2:c }; drag = { type:'col', c }; updateSelUI(); }
+    else if(th.dataset.r){ const r = +th.dataset.r; sel = { ar:r, ac:0, r1:r, c1:0, r2:r, c2:COLS-1 }; drag = { type:'row', r }; updateSelUI(); }
+    gridwrap.focus({ preventScroll:true });
+    return;
+  }
+  const p = cellFromEvent(e); if(!p) return;
+  if(editing && refInsertable()){
+    e.preventDefault();
+    const t = getEditText(); const base = editing.refIns ? t.slice(0, editing.refIns.start) : t;
+    editing.refIns = { start: base.length, r:p.r, c:p.c };
+    setEditText(base + A(p.r,p.c));
+    placeBox(document.getElementById('refbox'), { r1:p.r, c1:p.c, r2:p.r, c2:p.c });
+    drag = { type:'ref', r:p.r, c:p.c };
+    focusEditor();
+    return;
+  }
+  if(editing) commitEdit();
+  e.preventDefault();
+  gridwrap.focus({ preventScroll:true });
+  if(e.shiftKey){ sel = expandSel({ ar:sel.ar, ac:sel.ac, r1:Math.min(sel.ar,p.r), c1:Math.min(sel.ac,p.c), r2:Math.max(sel.ar,p.r), c2:Math.max(sel.ac,p.c) }); state.sel[state.active]=sel; updateSelUI(); }
+  else setSel(p.r, p.c);
+  drag = { type:'sel', r:sel.ar, c:sel.ac };
+});
+document.addEventListener('mousemove', e => {
+  if(!drag) return;
+  if(drag.type==='col' || drag.type==='row'){
+    const el = document.elementFromPoint(e.clientX, e.clientY); const th = el && el.closest && el.closest('th');
+    if(drag.type==='col' && th && th.dataset.c){ const c = +th.dataset.c; sel = { ar:0, ac:drag.c, r1:0, c1:Math.min(drag.c,c), r2:ROWS-1, c2:Math.max(drag.c,c) }; updateSelUI(); }
+    if(drag.type==='row' && th && th.dataset.r){ const r = +th.dataset.r; sel = { ar:drag.r, ac:0, r1:Math.min(drag.r,r), c1:0, r2:Math.max(drag.r,r), c2:COLS-1 }; updateSelUI(); }
+    return;
+  }
+  const p = cellFromEvent(e); if(!p) return;
+  if(drag.type==='sel'){
+    const ns = expandSel({ ar:drag.r, ac:drag.c, r1:Math.min(drag.r,p.r), c1:Math.min(drag.c,p.c), r2:Math.max(drag.r,p.r), c2:Math.max(drag.c,p.c) });
+    if(ns.r1!==sel.r1||ns.r2!==sel.r2||ns.c1!==sel.c1||ns.c2!==sel.c2){ sel = ns; state.sel[state.active]=sel; updateSelUI(); }
+  } else if(drag.type==='ref' && editing && editing.refIns){
+    const g = { r1:Math.min(drag.r,p.r), c1:Math.min(drag.c,p.c), r2:Math.max(drag.r,p.r), c2:Math.max(drag.c,p.c) };
+    const t = getEditText().slice(0, editing.refIns.start);
+    setEditText(t + rangeName(g)); placeBox(document.getElementById('refbox'), g);
+  } else if(drag.type==='fill'){
+    const s = drag.src; let g;
+    if(p.r > s.r2 && (p.r - s.r2) >= (p.c - s.c2)){ g = { r1:s.r1, c1:s.c1, r2:p.r, c2:s.c2 }; drag.to = { r:p.r, c:s.c2, down:true }; }
+    else if(p.c > s.c2){ g = { r1:s.r1, c1:s.c1, r2:s.r2, c2:p.c }; drag.to = { r:s.r2, c:p.c, down:false }; }
+    else { g = s; drag.to = null; }
+    placeBox(document.getElementById('fillbox'), g);
+  }
+});
+document.addEventListener('mouseup', () => {
+  if(drag && drag.type==='fill'){ document.getElementById('fillbox').hidden = true; if(drag.to) applyFill(drag.src, drag.to.r, drag.to.c, drag.to.down); }
+  drag = null;
+});
+sheetEl.addEventListener('dblclick', e => { const p = cellFromEvent(e); if(!p || editing) return; setSel(p.r,p.c); startEdit((cur().cells[K(sel.ar,sel.ac)]||{}).v || '', 'edit'); });
+gridwrap.addEventListener('scroll', () => { if(editing) positionEditor(); });
+window.addEventListener('resize', () => { updateSelUI(); });
+
+/* ---------- keyboard ---------- */
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if(t === editor || t === fbar) return;
+  if(t && (t.tagName==='INPUT' || t.tagName==='SELECT' || t.tagName==='TEXTAREA')) return;
+  if(document.querySelector('.modalbg')){ if(e.key==='Escape') closeModal(); return; }
+  if(t && t.tagName==='BUTTON' && (e.key==='Enter' || e.key===' ')) return;
+  const ctrl = e.ctrlKey || e.metaKey; const k = e.key.toLowerCase();
+  if(ctrl){
+    const map = { c:()=>copySel(false), x:()=>copySel(true), v:pasteClip, z:()=>doUndo(false), y:()=>doUndo(true), b:()=>act('bold'), i:()=>act('italic'), u:()=>act('underline'), a:()=>{ sel = { ar:sel.ar, ac:sel.ac, r1:0, c1:0, r2:ROWS-1, c2:COLS-1 }; updateSelUI(); }, '`':()=>act('showf') };
+    if(map[k]){ e.preventDefault(); map[k](); }
+    return;
+  }
+  const arrows = { arrowup:[-1,0], arrowdown:[1,0], arrowleft:[0,-1], arrowright:[0,1] };
+  if(arrows[k]){ e.preventDefault(); moveActive(...arrows[k], e.shiftKey); return; }
+  if(k==='enter'){ e.preventDefault(); moveActive(e.shiftKey?-1:1, 0); return; }
+  if(k==='tab'){ e.preventDefault(); moveActive(0, e.shiftKey?-1:1); return; }
+  if(k==='f2'){ e.preventDefault(); startEdit((cur().cells[K(sel.ar,sel.ac)]||{}).v || '', 'edit'); return; }
+  if(k==='delete'){ e.preventDefault(); clearSel(); return; }
+  if(k==='backspace'){ e.preventDefault(); const cl = cur().cells[K(sel.ar,sel.ac)]||{}; if(cl.lock){ lockMsg(cl); return; } startEdit('', 'enter'); return; }
+  if(k==='escape'){ clip = null; document.getElementById('copybox').hidden = true; return; }
+  if(e.key.length===1 && !e.altKey){ e.preventDefault(); startEdit(e.key, 'enter'); }
+});
+
+/* ---------- ribbon ---------- */
+let lastFill = '#FFFF00', lastFc = '#C00000';
+function act(a, ev){
+  if(editing && !['showf'].includes(a)) commitEdit();
+  switch(a){
+    case 'copy': return copySel(false);
+    case 'cut': return copySel(true);
+    case 'paste': return pasteClip();
+    case 'bold': { const on = allSel(c=>c.b); return formatSel(c => { c.b = !on || undefined; }); }
+    case 'italic': { const on = allSel(c=>c.i); return formatSel(c => { c.i = !on || undefined; }); }
+    case 'underline': { const on = allSel(c=>c.u); return formatSel(c => { c.u = !on || undefined; }); }
+    case 'vtop': return formatSel(c => { c.va = 'top'; });
+    case 'vmid': return formatSel(c => { c.va = 'middle'; });
+    case 'vbot': return formatSel(c => { c.va = 'bottom'; });
+    case 'hleft': return formatSel(c => { c.ha = c.ha==='left' ? undefined : 'left'; });
+    case 'hcenter': return formatSel(c => { c.ha = c.ha==='center' ? undefined : 'center'; });
+    case 'hright': return formatSel(c => { c.ha = c.ha==='right' ? undefined : 'right'; });
+    case 'merge': return mergeCenter();
+    case 'fmtCurrency': return formatSel(c => { c.fmt = 'currency'; c.dp = 2; });
+    case 'fmtPercent': return formatSel(c => { c.fmt = 'percent'; c.dp = 0; });
+    case 'decInc': case 'decDec': {
+      const d = a==='decInc' ? 1 : -1;
+      return formatSel((c,r,col) => { const v = cellValue(cur(), r, col, new Set()); if(typeof v!=='number') return; const now = c.fmt && c.fmt!=='general' ? (c.dp ?? (c.fmt==='percent'?0:2)) : decimalsShown(v, c); if(!c.fmt || c.fmt==='general') c.fmt = 'number'; c.dp = Math.max(0, Math.min(10, now + d)); });
+    }
+    case 'autosum': return autoSum();
+    case 'showf': showFormulas = !showFormulas; render(); toast(showFormulas ? 'Showing formulas. Press Ctrl + ` to switch back.' : 'Showing values'); return;
+  }
+}
+document.querySelectorAll('[data-act]').forEach(b => b.addEventListener('mousedown', e => e.preventDefault()));
+document.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', e => {
+  const a = b.dataset.act;
+  if(a==='borders' || a==='fill' || a==='fcolor'){
+    const caret = e.target.closest('.caret');
+    if(a==='borders' && !caret) return openBorders(b);
+    if(!caret){ if(a==='fill') return formatSel(c => { c.fill = lastFill || undefined; }); return formatSel(c => { c.fc = lastFc; }); }
+    return a==='borders' ? openBorders(b) : openPalette(b, a);
+  }
+  act(a);
+}));
+document.querySelectorAll('[data-fn]').forEach(b => { b.addEventListener('mousedown', e => e.preventDefault()); b.addEventListener('click', () => insertFn(b.dataset.fn)); });
+const fsSel = document.getElementById('fontSize'); fsSel.innerHTML = SIZES.map(s=>`<option value="${s}">${s}</option>`).join('');
+fsSel.addEventListener('change', () => { const v = +fsSel.value; formatSel(c => { c.fs = v===11 ? undefined : v; }); gridwrap.focus({preventScroll:true}); });
+const nf = document.getElementById('numFmt');
+nf.addEventListener('change', () => { const v = nf.value; formatSel(c => { if(v==='general'){ delete c.fmt; delete c.dp; } else { c.fmt = v; c.dp = v==='percent' ? 0 : 2; } }); gridwrap.focus({preventScroll:true}); });
+document.getElementById('tabHome').addEventListener('click', () => switchRibbon('home'));
+document.getElementById('tabFormulas').addEventListener('click', () => switchRibbon('formulas'));
+function switchRibbon(w){ document.getElementById('ribbonHome').hidden = w!=='home'; document.getElementById('ribbonFormulas').hidden = w!=='formulas'; document.getElementById('tabHome').setAttribute('aria-selected', w==='home'); document.getElementById('tabFormulas').setAttribute('aria-selected', w==='formulas'); }
+document.getElementById('undoBtn').addEventListener('click', () => doUndo(false));
+document.getElementById('redoBtn').addEventListener('click', () => doUndo(true));
+const nameBox = document.getElementById('namebox');
+nameBox.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); const g = pr(nameBox.value.toUpperCase()); if(g && g.r2<ROWS && g.c2<COLS){ sel = expandSel({ ar:g.r1, ac:g.c1, ...g }); updateSelUI(); scrollToCell(g.r1,g.c1); gridwrap.focus({preventScroll:true}); } else toast('Type a cell like B5 or a range like B5:E5.'); } });
+nameBox.addEventListener('focus', () => nameBox.select());
+
+/* popovers */
+const popHost = document.getElementById('popHost');
+function closePop(){ popHost.innerHTML = ''; }
+function openPop(anchor, html){
+  closePop(); const r = anchor.getBoundingClientRect();
+  popHost.innerHTML = `<div class="pop" style="left:${Math.min(r.left, window.innerWidth-260)}px;top:${r.bottom+4}px">${html}</div>`;
+  setTimeout(() => document.addEventListener('mousedown', outside, { once:true }), 0);
+  function outside(ev){ if(!popHost.contains(ev.target)) closePop(); else document.addEventListener('mousedown', outside, { once:true }); }
+}
+function openPalette(anchor, kind){
+  const rows = [PALETTE.slice(0,10), PALETTE.slice(10,20), PALETTE.slice(20,30), PALETTE.slice(30)];
+  const labels = ['Theme Colors','','Standard Colors','Good, Bad and Neutral'];
+  let h = '';
+  rows.forEach((row,i) => { if(labels[i]) h += `<div class="poplabel">${labels[i]}</div>`; h += '<div class="pal">' + row.map(([hex,nm]) => `<button style="background:${hex}" title="${nm}" aria-label="${nm}" data-hex="${hex}"></button>`).join('') + '</div>'; });
+  h += `<div class="menu" style="margin-top:6px"><button data-hex="">${kind==='fill'?'No Fill':'Automatic (black)'}</button></div>`;
+  openPop(anchor, h);
+  popHost.querySelectorAll('[data-hex]').forEach(b => { b.addEventListener('mousedown', e => e.preventDefault()); b.addEventListener('click', () => {
+    const hex = b.dataset.hex; closePop();
+    if(kind==='fill'){ lastFill = hex; document.getElementById('fillSwatch').style.background = hex || 'transparent'; formatSel(c => { c.fill = hex || undefined; }); }
+    else { lastFc = hex || '#000000'; document.getElementById('fcSwatch').style.background = lastFc; formatSel(c => { c.fc = hex || undefined; }); }
+  }); });
+}
+function openBorders(anchor){
+  const items = [['all','All Borders'],['outside','Outside Borders'],['bottom','Bottom Border'],['top','Top Border'],['none','No Border']];
+  openPop(anchor, '<div class="menu">' + items.map(([k,l]) => `<button data-b="${k}">${l}</button>`).join('') + '</div>');
+  popHost.querySelectorAll('[data-b]').forEach(b => { b.addEventListener('mousedown', e => e.preventDefault()); b.addEventListener('click', () => { closePop(); applyBorders(b.dataset.b); }); });
+}
+
+/* ---------- checks, XP, quest panel ---------- */
+function api(sh){
+  const valRC = (r,c) => cellValue(sh, r, c, new Set());
+  const f = a => { const p = pa(a); return String((sh.cells[K(p.r,p.c)]||{}).v || ''); };
+  const S = {
+    sh, valRC, f,
+    val: a => { const p = pa(a); return valRC(p.r,p.c); },
+    numRC: (r,c,x) => { const v = valRC(r,c); return typeof v==='number' && Math.abs(v-x) < 1e-6; },
+    num: (a,x) => { const p = pa(a); return S.numRC(p.r,p.c,x); },
+    isF: a => f(a).startsWith('='),
+    uses: (a,fn) => f(a).toUpperCase().replace(/\s/g,'').includes(fn+'('),
+    all: (rng, pred) => cellsIn(rng).every(([r,c]) => pred(sh.cells[K(r,c)]||{})),
+    allEdges: rng => { const C = (r,c) => sh.cells[K(r,c)]||{}; return cellsIn(rng).every(([r,c]) => (C(r,c).bt || (r>0 && C(r-1,c).bb)) && (C(r,c).bb || C(r+1,c).bt) && (C(r,c).bl || (c>0 && C(r,c-1).br)) && (C(r,c).br || C(r,c+1).bl)); }
+  };
+  return S;
+}
+function statusOf(id){ return state.done[id] ? 'done' : (state.help[id] && state.help[id].skipped) ? 'skipped' : 'todo'; }
+function finishedCount(sheet){ return QUESTS[sheet].tasks.filter(t => !t.nav && statusOf(t.id)!=='todo').length; }
+function unlocked(sheet){ const q = QUESTS[sheet]; return !q.unlockFrom || finishedCount(q.unlockFrom) >= q.unlockAt; }
+function taskXP(t){ const lv = (state.help[t.id] || {}).level || 0; return XP_TASK - (lv ? HELP_COST[lv-1] : 0); }
+function runChecks(){
+  cache = new Map();
+  const wins = [];
+  SHEET_IDS.forEach(id => {
+    const S = api(state.sheets[id]);
+    QUESTS[id].tasks.forEach((t, idx) => {
+      let ok = false; try { ok = !!t.check(S); } catch(e){ ok = false; }
+      if(ok && !state.done[t.id]){ state.done[t.id] = true; const gain = taskXP(t); state.xp += gain; wins.push({ t, idx, gain, sheet:id }); if(state.help[t.id]) state.help[t.id].skipped = false; }
+      if(t.bonusCheck && state.done[t.id] && !state.bonus[t.id]){ let b = false; try { b = !!t.bonusCheck(S); } catch(e){} if(b){ state.bonus[t.id] = true; state.xp += XP_BONUS; wins.push({ t, idx, gain:XP_BONUS, bonus:true, sheet:id }); } }
+    });
+  });
+  if(wins.length){
+    const w = wins[wins.length-1];
+    const msg = wins.map(x => x.bonus ? `Bonus! +${x.gain} XP` : `Level ${x.idx+1} complete: ${x.t.title} · +${x.gain} XP`).join('  ·  ');
+    toast(msg, true); confetti(wins.some(x=>!x.bonus) ? 160 : 90);
+    const sheetDone = SHEET_IDS.find(id => !state.celebrated[id] && QUESTS[id].tasks.every(t => state.done[t.id]));
+    if(sheetDone){ state.celebrated[sheetDone] = true; setTimeout(() => { confetti(320); sheetModal(sheetDone); }, 700); }
+    save();
+  }
+  return wins;
+}
+function rankFor(xp){ let i = 0; RANKS.forEach((r,j) => { if(xp >= r[0]) i = j; }); return i; }
+const openTask = {};
+function renderPanel(){
+  const xp = state.xp, ri = rankFor(xp), next = RANKS[ri+1];
+  document.getElementById('xpNum').textContent = xp + ' XP';
+  document.getElementById('rankName').textContent = RANKS[ri][1];
+  document.getElementById('rankBig').textContent = RANKS[ri][1];
+  document.getElementById('xpBig').textContent = xp + ' XP';
+  document.getElementById('xpBar').style.width = (next ? ((xp - RANKS[ri][0]) / (next[0] - RANKS[ri][0]) * 100) : 100) + '%';
+  document.getElementById('nextRank').textContent = next ? `${next[0]-xp} XP to ${next[1]}` : 'Top rank reached';
+  const q = QUESTS[state.active]; const body = document.getElementById('qbody');
+  const doneN = q.tasks.filter(t => state.done[t.id]).length;
+  let h = `<div class="story"><b>${q.title} · ${q.sub} <span style="font-weight:400;color:var(--muted)">(${doneN}/${q.tasks.length})</span></b>${q.story}</div><ol class="tasks">`;
+  const firstTodo = q.tasks.find(t => statusOf(t.id)==='todo');
+  q.tasks.forEach((t, i) => {
+    const st = statusOf(t.id); const isCur = firstTodo && firstTodo.id===t.id;
+    const open = openTask[state.active] ? openTask[state.active]===t.id : isCur;
+    const hl = state.help[t.id] || {};
+    const tag = st==='done' ? (state.bonus[t.id] ? `+${taskXP(t)+XP_BONUS} XP ★` : `+${taskXP(t)} XP`) : st==='skipped' ? 'Skipped' : hl.level ? `Help ${hl.level}/3` : '100 XP';
+    h += `<li class="task ${st} ${isCur?'current':''}"><button class="th" data-open="${t.id}" aria-expanded="${open}"><span class="dot">${st==='done'?'✓':i+1}</span><span class="tt">${t.title}</span><span class="tag">${tag}</span></button>`;
+    if(open){
+      h += `<div class="tb"><div>${t.text}</div>`;
+      if(t.bonus) h += `<div class="bonus">★ Bonus +${XP_BONUS} XP: ${t.bonus}${state.bonus[t.id]?' <b>Earned</b>':''}</div>`;
+      const lvl = hl.level || 0;
+      if(lvl>0){ h += '<div class="help">'; const names = ['Nudge','Step by step','The answer']; for(let k=0;k<lvl;k++) h += `<h4>${names[k]}</h4><div>${t.help[k]}</div>`; h += '</div>'; }
+      h += '<div class="acts">';
+      if(t.go) h += `<button class="btn" data-go="${t.go}">Go to ${t.go}</button>`;
+      if(st!=='done' && lvl<3) h += `<button class="btn" data-help="${t.id}">${['I\'m stuck: give me a nudge','Show me step by step','Show me the answer'][lvl]}</button>`;
+      if(st==='todo' && lvl>=1 && !t.nav) h += `<button class="btn ghost" data-skip="${t.id}">Skip for now</button>`;
+      h += '</div>';
+      if(st!=='done' && lvl>0) h += `<div style="font-size:11.5px;color:var(--muted)">Using help lowers the XP for this task, and it is still worth finishing. Help used: ${['','nudge','steps','answer'][lvl]}.</div>`;
+      if(st==='skipped') h += `<div style="font-size:11.5px;color:var(--skip)">Skipped. Come back to it any time: it still counts when you finish it.</div>`;
+      h += '</div>';
+    }
+    h += '</li>';
+  });
+  h += '</ol>';
+  const nextSheet = SHEET_IDS[SHEET_IDS.indexOf(state.active)+1];
+  if(nextSheet && !unlocked(nextSheet)){ const nq = QUESTS[nextSheet]; h += `<div class="lockednote"><b>${nq.title}</b> opens when you have finished or skipped ${nq.unlockAt} ${q.title} tasks. You are on ${finishedCount(state.active)}.</div>`; }
+  body.innerHTML = h;
+  body.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => { const id = b.dataset.open; openTask[state.active] = (openTask[state.active]===id) ? '__none' : id; renderPanel(); }));
+  body.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { const g = pr(b.dataset.go); if(editing) commitEdit(); sel = expandSel({ ar:g.r1, ac:g.c1, ...g }); updateSelUI(); scrollToCell(g.r2,g.c2); scrollToCell(g.r1,g.c1); gridwrap.focus({preventScroll:true}); }));
+  body.querySelectorAll('[data-help]').forEach(b => b.addEventListener('click', () => { const id = b.dataset.help; const hl = state.help[id] = state.help[id] || { level:0 }; hl.level = Math.min(3, (hl.level||0)+1); openTask[state.active] = id; save(); renderPanel(); }));
+  body.querySelectorAll('[data-skip]').forEach(b => b.addEventListener('click', () => { const id = b.dataset.skip; state.help[id] = Object.assign(state.help[id]||{level:1}, { skipped:true }); openTask[state.active] = null; save(); renderTabs(); renderPanel(); toast('Skipped for now. Your teacher can see which tasks you skipped.'); }));
+  renderTabs();
+}
+function renderTabs(){
+  const host = document.getElementById('sheetTabs');
+  host.innerHTML = SHEET_IDS.map(id => { const q = QUESTS[id]; const lk = !unlocked(id); const d = q.tasks.filter(t=>state.done[t.id]).length;
+    return `<button class="stab ${lk?'locked':''}" role="tab" aria-selected="${state.active===id}" data-sheet="${id}">${lk?'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-label="Locked"><rect x="2" y="5.5" width="8" height="5.5" rx="1"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5"/></svg>':''}${q.title}<span class="cnt">${d}/${q.tasks.length}</span></button>`; }).join('');
+  host.querySelectorAll('[data-sheet]').forEach(b => b.addEventListener('click', () => switchSheet(b.dataset.sheet)));
+}
+function switchSheet(id){
+  if(id===state.active) return;
+  if(!unlocked(id)){ const q = QUESTS[id]; toast(`${q.title} opens when you have finished or skipped ${q.unlockAt} ${QUESTS[q.unlockFrom].title} tasks.`); return; }
+  if(editing) commitEdit();
+  state.active = id; state.visited[id] = true;
+  sel = state.sel[id] || { ar:1, ac:1, r1:1, c1:1, r2:1, c2:1 };
+  gridwrap.scrollTop = 0; gridwrap.scrollLeft = 0;
+  render(); runChecks(); renderPanel(); save();
+}
+function afterChange(){ render(); runChecks(); renderPanel(); save(); }
+
+/* ---------- toast, modal, confetti ---------- */
+let toastT = null;
+function toast(msg, win){ const el = document.getElementById('toast'); el.textContent = msg; el.className = 'show' + (win ? ' win' : ''); clearTimeout(toastT); toastT = setTimeout(() => el.className = win ? 'win' : '', win ? 3200 : 2600); }
+function modal(html, onMount){ document.getElementById('modalHost').innerHTML = `<div class="modalbg" role="dialog" aria-modal="true"><div class="modal">${html}</div></div>`; const bg = document.querySelector('.modalbg'); bg.addEventListener('mousedown', e => { if(e.target===bg) closeModal(); }); bg.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeModal)); if(onMount) onMount(bg); const f = bg.querySelector('button'); f && f.focus(); }
+function closeModal(){ document.getElementById('modalHost').innerHTML = ''; gridwrap.focus({preventScroll:true}); }
+function sheetModal(id){
+  const idx = SHEET_IDS.indexOf(id), next = SHEET_IDS[idx+1];
+  if(SHEET_IDS.every(s => QUESTS[s].tasks.every(t => state.done[t.id]))) return certificate();
+  modal(`<header><h2>${QUESTS[id].title} sheet complete</h2><p>Every task finished. ${RANKS[rankFor(state.xp)][1]} · ${state.xp} XP</p></header>
+    <div class="mb"><p>${id==='easy' ? 'You can format a spreadsheet so it looks professional. Next: formulas that do the maths for you.' : 'You can use SUM, AVERAGE, MIN, MAX and formulas that multiply. Next: decisions with IF and references that stay still.'}</p></div>
+    <div class="mf">${next && state.active!==next ? `<button class="btn" data-close>Stay here</button><button class="btn primary" id="goNext">Go to ${QUESTS[next].title}</button>` : '<button class="btn primary" data-close>Keep going</button>'}</div>`,
+    bg => { const g = bg.querySelector('#goNext'); g && g.addEventListener('click', () => { closeModal(); switchSheet(next); }); });
+}
+function today(){ return new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }); }
+function certificate(){
+  modal(`<header><h2>Quest complete</h2><p>All three worksheets finished</p></header>
+    <div class="mb"><div class="cert"><div>This certifies that</div><div class="nm">${esc(state.name || 'Excel Quest student')}</div><div>completed Excel Quest (Easy, Medium and Hard)</div><div><b>${state.xp} XP</b> · Rank: <b>${RANKS[rankFor(state.xp)][1]}</b></div><div style="color:var(--muted);font-size:12px">${today()} · Year 9 IT</div></div>
+    <p style="margin:0;font-size:13px;color:var(--muted)">Show this screen to your teacher. ${state.name ? '' : 'Type your name in the box at the top of the quest panel first.'}</p></div>
+    <div class="mf"><button class="btn primary" data-close>Close</button></div>`);
+}
+function progressModal(){
+  const rows = SHEET_IDS.map(id => { const q = QUESTS[id];
+    return `<div><h3>${q.title} · ${q.sub}</h3><table>${q.tasks.map((t,i) => { const st = statusOf(t.id); const hl = state.help[t.id]||{}; const help = hl.level ? ` · help: ${['','nudge','steps','answer'][hl.level]}` : '';
+      return `<tr><td>${i+1}. ${t.title}</td><td>${st==='done'?'<span class="ok">Done</span>':st==='skipped'?'<span class="sk">Skipped</span>':'Not yet'}${state.bonus[t.id]?' ★':''}${help}</td></tr>`; }).join('')}</table></div>`; }).join('');
+  const doneAll = SHEET_IDS.reduce((a,id)=>a+QUESTS[id].tasks.filter(t=>state.done[t.id]).length,0), total = SHEET_IDS.reduce((a,id)=>a+QUESTS[id].tasks.length,0);
+  modal(`<header><h2>${esc(state.name || 'My progress')}</h2><p>${doneAll} of ${total} tasks · ${state.xp} XP · ${RANKS[rankFor(state.xp)][1]} · ${today()}</p></header>
+    <div class="mb"><div class="plist">${rows}</div></div>
+    <div class="mf"><button class="btn ghost" id="resetBtn">Start again</button><button class="btn primary" data-close>Close</button></div>`,
+    bg => { const rb = bg.querySelector('#resetBtn'); let armed = false; rb.addEventListener('click', () => { if(!armed){ armed = true; rb.textContent = 'Click again to delete all progress'; rb.style.borderColor = '#c00000'; rb.style.color = '#c00000'; return; } const nm = state.name; state = freshState(); state.name = nm; Object.keys(undo).forEach(k=>delete undo[k]); clip = null; sel = { ar:1, ac:1, r1:1, c1:1, r2:1, c2:1 }; closeModal(); render(); renderPanel(); save(); toast('Progress reset'); }); });
+}
+document.getElementById('progressBtn').addEventListener('click', progressModal);
+document.getElementById('xpPill').addEventListener('click', progressModal);
+document.getElementById('keysBtn').addEventListener('click', () => modal(`<header><h2>Keyboard shortcuts</h2><p>The same shortcuts work in Microsoft Excel</p></header><div class="mb"><div class="plist"><table>
+  ${[['Ctrl + C / X / V','Copy, cut, paste'],['Ctrl + Z / Y','Undo, redo'],['Ctrl + B / I / U','Bold, italic, underline'],['Enter / Tab','Confirm and move down / right'],['Shift + arrow','Select more cells'],['F2','Edit the cell you are on'],['Delete','Clear the selected cells'],['Esc','Cancel typing'],['Ctrl + `','Show formulas']].map(([k,v])=>`<tr><td><b>${k}</b></td><td>${v}</td></tr>`).join('')}
+  </table><p style="margin:0">Tip: while typing a formula, click a cell to add it to the formula. Drag to add a range.</p></div></div><div class="mf"><button class="btn primary" data-close>Close</button></div>`));
+const nameIn = document.getElementById('studentName');
+nameIn.value = state.name || '';
+nameIn.addEventListener('input', () => { state.name = nameIn.value; save(); });
+nameIn.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); gridwrap.focus({preventScroll:true}); } });
+
+const cv = document.getElementById('confetti'), cx = cv.getContext('2d');
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const CCOL = ['#217346','#33c481','#ffd34d','#f2b705','#4472c4','#ed7d31','#ffffff','#e84a5f','#7bd389'];
+let parts = [], raf = null;
+function confetti(n){
+  n = reduced ? Math.min(25, n) : n;
+  cv.width = window.innerWidth * devicePixelRatio; cv.height = window.innerHeight * devicePixelRatio; cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  const W = window.innerWidth;
+  for(let i=0;i<n;i++) parts.push({ x:Math.random()*W, y:-20-Math.random()*window.innerHeight*0.6, vx:(Math.random()-.5)*2.4, vy:1.6+Math.random()*2.6, rot:Math.random()*6.28, vr:(Math.random()-.5)*.25, w:6+Math.random()*6, h:9+Math.random()*8, col:CCOL[i%CCOL.length], flip:Math.random()*6.28, round:Math.random()<.25 });
+  if(!raf) raf = requestAnimationFrame(tick);
+}
+function tick(){
+  const H = window.innerHeight; cx.clearRect(0,0,cv.width,cv.height);
+  parts = parts.filter(p => p.y < H + 30);
+  for(const p of parts){
+    p.vy = Math.min(p.vy + 0.03, 5); p.x += p.vx + Math.sin(p.y/40)*0.6; p.y += p.vy; p.rot += p.vr; p.flip += 0.12;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.fillStyle = p.col;
+    if(p.round){ cx.beginPath(); cx.arc(0,0,p.w/2,0,6.28); cx.fill(); }
+    else { const sx = Math.cos(p.flip); cx.fillRect(-p.w/2*sx, -p.h/2, p.w*sx || 1, p.h); }
+    cx.restore();
+  }
+  raf = parts.length ? requestAnimationFrame(tick) : (cx.clearRect(0,0,cv.width,cv.height), null);
+}
+
+/* ---------- boot ---------- */
+sel = state.sel[state.active] || sel;
+if(!unlocked(state.active)) state.active = 'easy';
+render(); runChecks(); renderPanel();
+gridwrap.focus({ preventScroll:true });
+window.__excelQuest = { state: () => state, setSel:(a)=>{ const g = pr(a); sel = expandSel({ ar:g.r1, ac:g.c1, ...g }); updateSelUI(); }, act, setRaw:(a,t)=>{ const p = pa(a); pushUndo(); setRaw(p.r,p.c,t); afterChange(); }, mergeCenter, applyBorders, copySel, pasteClip, applyFill:(src,r,c,d)=>applyFill(pr(src),r,c,d), switchSheet, formatSel, val:(a)=>{ const p=pa(a); cache=new Map(); return cellValue(cur(),p.r,p.c,new Set()); } };
+})();
+</script>
+
+</body></html>
