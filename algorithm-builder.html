@@ -1,0 +1,759 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Algorithm Builder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caladea:wght@400;700&family=Carlito:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: a workbench. Each level has the algorithm being built on the left and the blocks plus a live test on the right. Stacks on phones. */
+:root {
+  --bg: #F2F7F6; --surface: #FFFFFF; --surface-2: #E6F3F0; --ink: #13292C; --muted: #4C6A6D; --head: #013438;
+  --teal: #027785; --teal-soft: #CDEDE8; --accent: #F3A712; --accent-ink: #1B1A12; --accent-soft: #FFF3D9;
+  --line: #CBE0DC; --good: #0B7A54; --good-soft: #DDF3EA; --bad: #B33A0E; --bad-soft: #FCE6DC;
+  --bronze: #A8632C; --silver: #6E808C; --gold: #B98A0B;
+  --proc: #DCEFFA; --proc-line: #2F79A8; --dec: #FFF0CC; --dec-line: #B07A00; --io: #E7E2F8; --io-line: #6650B5; --term: #DDF3EA; --term-line: #0B7A54;
+  --display: 'Caladea', Cambria, Georgia, serif; --body: 'Carlito', Calibri, 'Segoe UI', Arial, sans-serif; --mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A1D20; --surface: #0F282C; --surface-2: #15363B; --ink: #E2F1EE; --muted: #9BBAB6; --head: #E8F6F3;
+    --teal: #4CC7B8; --teal-soft: #1B4A4F; --accent-soft: #3A2F14; --line: #24494E; --good: #45D597; --good-soft: #143A2D; --bad: #FF8D5E; --bad-soft: #3E2117;
+    --bronze: #E09A5E; --silver: #B8C6D0; --gold: #F0C640;
+    --proc: #16334A; --proc-line: #7FBCE6; --dec: #3A2F14; --dec-line: #F3C55A; --io: #2A2447; --io-line: #B4A6F0; --term: #143A2D; --term-line: #45D597;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A1D20; --surface: #0F282C; --surface-2: #15363B; --ink: #E2F1EE; --muted: #9BBAB6; --head: #E8F6F3;
+  --teal: #4CC7B8; --teal-soft: #1B4A4F; --accent-soft: #3A2F14; --line: #24494E; --good: #45D597; --good-soft: #143A2D; --bad: #FF8D5E; --bad-soft: #3E2117;
+  --bronze: #E09A5E; --silver: #B8C6D0; --gold: #F0C640;
+  --proc: #16334A; --proc-line: #7FBCE6; --dec: #3A2F14; --dec-line: #F3C55A; --io: #2A2447; --io-line: #B4A6F0; --term: #143A2D; --term-line: #45D597;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 18px; line-height: 1.45; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { font-family: var(--display); color: var(--head); margin: 0; text-wrap: balance; line-height: 1.15; }
+h1 { font-size: clamp(30px, 4vw, 42px); } h2 { font-size: clamp(24px, 3vw, 30px); } h3 { font-size: 21px; }
+p { margin: 0; }
+.eyebrow { font-size: 14px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); }
+.lede { color: var(--muted); max-width: 64ch; }
+.small { font-size: 15px; color: var(--muted); }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+header.top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; }
+header.top .titles { display: flex; flex-direction: column; gap: 4px; }
+.stepper { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.stepper button { display: flex; align-items: center; gap: 8px; border: 2px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px 6px 6px; font-size: 16px; color: var(--muted); }
+.stepper .medal { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #fff; font-size: 13px; }
+.stepper button[aria-current="step"] { border-color: var(--accent); color: var(--ink); font-weight: 700; }
+.stepper button:disabled { opacity: 0.5; cursor: not-allowed; }
+.m-bronze { background: var(--bronze); } .m-silver { background: var(--silver); } .m-gold { background: var(--gold); } .m-done { background: var(--teal); }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; box-shadow: 0 6px 18px rgba(1, 52, 56, 0.08); }
+.topbar .prog { flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.plab { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 700; color: var(--head); }
+.plab .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.pbar { height: 14px; border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+.pbar i { display: block; height: 100%; border-radius: 7px; background: linear-gradient(90deg, var(--bronze), var(--silver), var(--gold)); transition: width 0.5s ease; }
+.medals { display: flex; gap: 8px; align-items: center; }
+.medals span { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; opacity: 0.25; }
+.medals span.won { opacity: 1; box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--accent); }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card.tint { background: var(--surface-2); border-color: transparent; }
+.lvlhead { display: flex; gap: 16px; align-items: center; }
+.lvlhead .big { flex: none; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-family: var(--display); font-size: 15px; letter-spacing: 0.04em; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { border: 2px solid var(--line); background: var(--surface); border-radius: 10px; padding: 9px 16px; font-weight: 700; text-decoration: none; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--teal); }
+.btn.primary { background: var(--teal); border-color: var(--teal); color: var(--surface); }
+.btn.go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.big { font-size: 20px; padding: 12px 22px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.linkish { background: none; border: none; padding: 0; color: var(--teal); text-decoration: underline; font-weight: 700; }
+.fb { border-radius: 12px; padding: 12px 16px; font-size: 17px; }
+.fb:empty { display: none; }
+.fb.ok { background: var(--good-soft); border-left: 5px solid var(--good); }
+.fb.no { background: var(--bad-soft); border-left: 5px solid var(--bad); }
+.fb.tip { background: var(--accent-soft); border-left: 5px solid var(--accent); }
+.fb.info { background: var(--surface-2); border-left: 5px solid var(--teal); }
+/* Bronze */
+ol.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; counter-reset: s; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 36px 1fr auto; gap: 10px; align-items: center; background: var(--proc); border: 2px solid var(--proc-line); border-radius: 10px; padding: 8px 10px; transition: background 0.2s; }
+ol.steps li::before { content: counter(s); width: 30px; height: 30px; border-radius: 50%; background: var(--surface); color: var(--head); font-weight: 700; display: grid; place-items: center; font-family: var(--mono); font-size: 14px; }
+ol.steps li.running { background: var(--accent-soft); border-color: var(--accent); }
+ol.steps li.passed { border-color: var(--good); }
+ol.steps li.bug { background: var(--bad-soft); border-color: var(--bad); }
+.tools { display: flex; gap: 4px; }
+.tools button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; }
+.empty { border: 2px dashed var(--line); border-radius: 12px; padding: 18px; color: var(--muted); text-align: center; }
+.bank { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { text-align: left; border: 2px solid var(--proc-line); background: var(--surface); border-radius: 10px; padding: 8px 12px; font-size: 16px; }
+.chip:hover { background: var(--proc); }
+.kitchen { width: 100%; height: auto; display: block; background: var(--surface-2); border-radius: 12px; }
+.k-line { fill: none; stroke: var(--muted); stroke-width: 3; }
+.k-body { fill: var(--surface); stroke: var(--head); stroke-width: 3; }
+.k-water { fill: #8FCBE6; opacity: 0; transition: opacity 0.4s; }
+.has-water .k-water { opacity: 1; }
+.k-light { fill: var(--line); }
+.boiled .k-light { fill: #E4572E; }
+.steam { fill: none; stroke: var(--muted); stroke-width: 3; stroke-linecap: round; opacity: 0; }
+.boiled .steam { opacity: 0.8; animation: rise 1.6s ease-in-out infinite; }
+@keyframes rise { 0% { transform: translateY(6px); opacity: 0; } 40% { opacity: 0.8; } 100% { transform: translateY(-10px); opacity: 0; } }
+.mug { opacity: 0.18; transition: opacity 0.4s; }
+.has-mug .mug { opacity: 1; }
+.liquid { opacity: 0; fill: #BFE3F0; transition: fill 0.8s, opacity 0.4s; }
+.poured .liquid { opacity: 1; }
+.brewed .liquid { fill: #8B5A2B; }
+.brewed.milk .liquid { fill: #C49A6C; }
+.bag { opacity: 0; transition: opacity 0.3s; }
+.has-bag .bag { opacity: 1; }
+.label-k { font-size: 14px; color: var(--muted); }
+/* Flowchart (Silver) */
+.fcwrap { overflow-x: auto; }
+.fc { position: relative; width: 100%; min-width: 360px; max-width: 600px; aspect-ratio: 600 / 760; margin: 0 auto; }
+.fc svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fc .shape-p { fill: var(--proc); stroke: var(--proc-line); stroke-width: 3; }
+.fc .shape-d { fill: var(--dec); stroke: var(--dec-line); stroke-width: 3; }
+.fc .shape-o { fill: var(--io); stroke: var(--io-line); stroke-width: 3; }
+.fc .shape-t { fill: var(--term); stroke: var(--term-line); stroke-width: 3; }
+.fc .arrow { fill: none; stroke: var(--muted); stroke-width: 3; }
+.fc .ah { fill: var(--muted); }
+.fc .hl { stroke: var(--accent) !important; stroke-width: 6 !important; }
+.fc .lab, .fc .term { position: absolute; transform: translate(-50%, -50%); font-weight: 700; font-size: clamp(12px, 2.4vw, 15px); color: var(--head); pointer-events: none; }
+.fc .slot { position: absolute; transform: translate(-50%, -50%); background: transparent; border: 2px dashed transparent; border-radius: 8px; font-size: clamp(11px, 2.2vw, 15px); line-height: 1.2; padding: 2px 4px; color: var(--ink); display: grid; place-items: center; text-align: center; }
+.fc.tea { aspect-ratio: 600 / 1100; max-width: 540px; }
+.fc .fixed { position: absolute; transform: translate(-50%, -50%); font-size: clamp(11px, 2.2vw, 15px); line-height: 1.2; text-align: center; color: var(--ink); pointer-events: none; }
+.fc .term { text-align: center; }
+@media (min-width: 901px) { .col.sticky { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 96px); } }
+.fc .slot.empty { color: var(--muted); font-style: italic; }
+.fc .slot.active { border-color: var(--accent); background: var(--accent-soft); }
+.fc .slot:hover { border-color: var(--teal); }
+.pal { display: flex; flex-direction: column; gap: 8px; }
+.pal button { display: flex; gap: 10px; align-items: center; text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 10px; font-size: 16px; }
+.pal button:hover { border-color: var(--teal); }
+.ico { flex: none; width: 34px; height: 22px; }
+.ico.p { background: var(--proc); border: 2px solid var(--proc-line); border-radius: 3px; }
+.ico.d { background: var(--dec); border: 2px solid var(--dec-line); width: 22px; height: 22px; transform: rotate(45deg) scale(0.8); margin: 0 6px; }
+.ico.o { background: var(--io); border: 2px solid var(--io-line); transform: skewX(-18deg); }
+.vars { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.cell { min-width: 52px; padding: 8px 10px; border-radius: 10px; border: 2px solid var(--line); background: var(--surface); text-align: center; font-family: var(--mono); font-weight: 700; font-size: 18px; transition: background 0.2s, border-color 0.2s; }
+.cell.cur { border-color: var(--accent); background: var(--accent-soft); }
+.cell.done { color: var(--muted); }
+.var { font-family: var(--mono); background: var(--surface-2); border-radius: 10px; padding: 8px 14px; font-weight: 700; }
+table.res { width: 100%; border-collapse: collapse; font-size: 16px; }
+table.res th, table.res td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+table.res th { background: var(--surface-2); color: var(--head); }
+.pass { color: var(--good); font-weight: 700; } .fail { color: var(--bad); font-weight: 700; }
+.tablewrap { overflow-x: auto; }
+/* Gold */
+.cards { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.ncard { width: 58px; height: 74px; border-radius: 10px; background: var(--surface); border: 2px solid var(--head); display: grid; place-items: center; font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--head); }
+.swapbtn { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--teal); background: var(--surface); color: var(--teal); font-weight: 700; font-size: 15px; }
+.swapbtn:hover { background: var(--teal); color: var(--surface); }
+.code { display: flex; flex-direction: column; gap: 8px; font-size: 17px; }
+.cb { border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; border: 2px solid; }
+.cb .kw { font-family: var(--mono); font-weight: 700; font-size: 15px; letter-spacing: 0.04em; }
+.cb.loop { background: var(--dec); border-color: var(--dec-line); }
+.cb.pass { background: var(--proc); border-color: var(--proc-line); margin-left: 20px; }
+.cb.ifb { background: var(--io); border-color: var(--io-line); margin-left: 20px; }
+.cb.out { background: var(--term); border-color: var(--term-line); }
+.cb .line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.gslot { border: 2px dashed var(--muted); background: var(--surface); border-radius: 8px; padding: 6px 10px; min-width: 160px; text-align: left; }
+.gslot.filled { border-style: solid; border-color: var(--head); font-weight: 700; }
+.gslot.hl { box-shadow: 0 0 0 4px var(--accent); }
+.gpal h4 { margin: 4px 0 0; font-family: var(--mono); font-size: 14px; color: var(--muted); letter-spacing: 0.06em; }
+.gpal .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.gpal .opts button { border: 2px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 10px; text-align: left; font-size: 16px; }
+.gpal .opts button[aria-pressed="true"] { border-color: var(--teal); background: var(--surface-2); }
+.bars { display: flex; align-items: flex-end; gap: 8px; height: 190px; padding: 10px; background: var(--surface-2); border-radius: 12px; }
+.bar { flex: 1; min-width: 26px; border-radius: 6px 6px 0 0; background: var(--teal); display: flex; align-items: flex-start; justify-content: center; color: var(--surface); font-family: var(--mono); font-weight: 700; padding-top: 4px; transition: height 0.2s; }
+.bar.cmp { background: var(--accent); color: var(--accent-ink); }
+.bar.sw { background: var(--bad); }
+.counts { font-family: var(--mono); font-size: 15px; }
+ol.qs { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .boiled .steam { animation: none; } .pbar i, .bar, .liquid, .k-water, .mug, .bag { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="titles">
+      <p class="eyebrow">Year 9 Computer Science · Algorithms</p>
+      <h1>Algorithm Builder</h1>
+    </div>
+    <ol class="stepper" id="stepper" aria-label="Levels"></ol>
+  </header>
+  <div class="topbar">
+    <div class="prog">
+      <div class="plab"><span id="plevel">Bronze</span><span class="num" id="ppct">0% complete</span></div>
+      <div class="pbar" role="progressbar" aria-label="Overall progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="pbar"><i style="width:0%"></i></div>
+    </div>
+    <div class="medals" aria-label="Medals won" id="medals"></div>
+  </div>
+  <main id="app" aria-live="polite"></main>
+  <p class="small">An algorithm is a precise set of step-by-step instructions. Refreshing the page starts again from Bronze.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var LEVELS = ['bronze', 'silver', 'gold', 'done'];
+  var LNAME = { bronze: 'Bronze', silver: 'Silver', gold: 'Gold', done: 'Finished' };
+  var S = { level: 'bronze', done: { bronze: false, silver: false, gold: false },
+    t: { q1: null, q2: null, q3: null, p5: null, q4: null, p6: null }, s: { A: null, B: null, C: null, D: null, F: null, E: null }, g: { hand: false, loop: null, pass: null, cond: null, act: null },
+    hints: { bronze: 0, silver: 0, gold: 0 } };
+  var ui = { active: null, msg: null, running: false, timer: null, results: null, hand: null, handSwaps: 0 };
+  var app = document.getElementById('app');
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ================= BRONZE: make a cup of tea (flowchart with selection and iteration) =================
+  var TB = {
+    t1: { t: 'd', x: 'Is there water in the kettle?' }, t2: { t: 'd', x: 'Has the kettle boiled?' },
+    t3: { t: 'd', x: 'Does the customer want milk?' }, t4: { t: 'p', x: 'Add a splash of milk' },
+    t5: { t: 'd', x: 'Have enough sugars been added?' }, t6: { t: 'p', x: 'Add one sugar' },
+    t7: { t: 'd', x: 'Is the kettle switched on?' }, t8: { t: 'd', x: 'Does the customer want sugar?' },
+    t9: { t: 'p', x: 'Add sugar' }, t10: { t: 'p', x: 'Add the whole bottle of milk' }
+  };
+  var T_ORDER = ['t8', 't4', 't2', 't9', 't5', 't1', 't10', 't6', 't3', 't7'];
+  // Shapes on the tea flowchart (viewBox 600 x 1100). Slots are empty for pupils to fill; the rest are given.
+  var TNODES = {
+    start: { k: 't', x: 200, y: 40, w: 140, h: 44, text: 'Start' },
+    q1: { k: 'd', x: 200, y: 140, slot: 1 }, p1: { k: 'p', x: 475, y: 140, text: 'Fill the kettle' },
+    p2: { k: 'p', x: 200, y: 250, text: 'Switch the kettle on' },
+    q2: { k: 'd', x: 200, y: 365, slot: 1 }, p3: { k: 'p', x: 475, y: 365, text: 'Wait 10 seconds' },
+    p4: { k: 'p', x: 200, y: 485, w: 300, h: 72, text: 'Get a mug, add a teabag, pour the water, brew 3 minutes, take the teabag out' },
+    q3: { k: 'd', x: 200, y: 610, slot: 1 }, p5: { k: 'p', x: 475, y: 610, slot: 1 },
+    io1: { k: 'o', x: 200, y: 735, text: 'Ask: how many sugars?' },
+    q4: { k: 'd', x: 200, y: 860, slot: 1 }, p6: { k: 'p', x: 475, y: 860, slot: 1 },
+    io2: { k: 'o', x: 200, y: 975, text: 'Serve the tea' },
+    end: { k: 't', x: 200, y: 1055, w: 140, h: 44, text: 'End' }
+  };
+  var T_SLOTS = ['q1', 'q2', 'q3', 'p5', 'q4', 'p6'];
+  var CUSTOMERS = [
+    { n: 'Customer 1', water: false, milk: true, sugars: 2, d: 'The kettle is empty. Wants milk and 2 sugars.' },
+    { n: 'Customer 2', water: true, milk: false, sugars: 0, d: 'The kettle is full. No milk, no sugar.' },
+    { n: 'Customer 3', water: true, milk: true, sugars: 1, d: 'The kettle is full. Wants milk and 1 sugar.' }
+  ];
+  function teaFlowSvg() {
+    var shapes = Object.keys(TNODES).map(function (id) {
+      var n = TNODES[id];
+      if (n.k === 't') return '<rect class="shape-t" data-s="' + id + '" x="' + (n.x - n.w / 2) + '" y="' + (n.y - n.h / 2) + '" width="' + n.w + '" height="' + n.h + '" rx="22"/>';
+      if (n.k === 'd') return '<path class="shape-d" data-s="' + id + '" d="M' + n.x + ' ' + (n.y - 50) + ' L' + (n.x + 130) + ' ' + n.y + ' L' + n.x + ' ' + (n.y + 50) + ' L' + (n.x - 130) + ' ' + n.y + ' Z"/>';
+      if (n.k === 'o') return '<path class="shape-o" data-s="' + id + '" d="M' + (n.x - 110) + ' ' + (n.y - 28) + ' L' + (n.x + 140) + ' ' + (n.y - 28) + ' L' + (n.x + 110) + ' ' + (n.y + 28) + ' L' + (n.x - 140) + ' ' + (n.y + 28) + ' Z"/>';
+      var w = n.w || 200, h = n.h || 56;
+      return '<rect class="shape-p" data-s="' + id + '" x="' + (n.x - w / 2) + '" y="' + (n.y - h / 2) + '" width="' + w + '" height="' + h + '" rx="4"/>';
+    }).join('');
+    var arrows = ['M200 62 V88', 'M200 190 V220', 'M330 140 H373', 'M475 168 V205 H204', 'M200 278 V313', 'M475 337 V296 H204', 'M330 365 H373',
+      'M200 415 V447', 'M200 521 V558', 'M330 610 H373', 'M475 638 V685 H204', 'M200 660 V705', 'M200 763 V808', 'M475 832 V786 H204', 'M330 860 H373',
+      'M200 910 V945', 'M200 1003 V1031'].map(function (d) { return '<path class="arrow" marker-end="url(#ah2)" d="' + d + '"/>'; }).join('');
+    return '<svg viewBox="0 0 600 1100" aria-hidden="true"><defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker></defs>' + shapes + arrows + '</svg>';
+  }
+  function tp(v, of) { return (v / of * 100) + '%'; }
+  function renderBronze() {
+    var used = {}; T_SLOTS.forEach(function (k) { if (S.t[k]) used[S.t[k]] = 1; });
+    var over = Object.keys(TNODES).map(function (id) {
+      var n = TNODES[id];
+      if (n.slot) {
+        var b = S.t[id], w = n.k === 'd' ? 180 : 186, h = n.k === 'd' ? 66 : 50;
+        return '<button class="slot' + (b ? '' : ' empty') + (ui.active === id ? ' active' : '') + '" data-a="tslot" data-k="' + id + '" style="left:' + tp(n.x, 600) + ';top:' + tp(n.y, 1100) + ';width:' + tp(w, 600) + ';height:' + tp(h, 1100) + '" aria-label="' + (b ? TB[b].x + '. Click to remove' : 'Empty ' + TNAME[n.k] + '. Click to choose it') + '">' + (b ? esc(TB[b].x) : 'empty') + '</button>';
+      }
+      var cls = n.k === 't' ? 'term' : 'fixed';
+      var fw = n.k === 'p' ? (n.w || 200) - 16 : n.k === 'o' ? 210 : 140;
+      return '<span class="' + cls + '" style="left:' + tp(n.x, 600) + ';top:' + tp(n.y, 1100) + ';width:' + tp(fw, 600) + '">' + esc(n.text) + '</span>';
+    }).join('');
+    var labs = [['Yes', 176, 210], ['No', 352, 124], ['Yes', 226, 432], ['No', 352, 349], ['Yes', 352, 594], ['No', 178, 688], ['Yes', 226, 928], ['No', 352, 844]]
+      .map(function (l) { return '<span class="lab" style="left:' + tp(l[1], 600) + ';top:' + tp(l[2], 1100) + '">' + l[0] + '</span>'; }).join('');
+    var pal = T_ORDER.filter(function (id) { return !used[id]; }).map(function (id) { return '<button data-a="tadd" data-id="' + id + '"><span class="ico ' + TB[id].t + '" aria-hidden="true"></span>' + esc(TB[id].x) + '</button>'; }).join('');
+    var full = T_SLOTS.every(function (k) { return S.t[k]; });
+    var k = ui.k || {};
+    var cust = ui.cust != null ? CUSTOMERS[ui.cust] : CUSTOMERS[0];
+    return head('bronze', 'Make a cup of tea', 'A café robot makes tea for different customers. Complete the flowchart so it works for <b>every</b> customer. Click an empty shape, then click a block. Diamonds ask yes or no questions; rectangles are steps.', 'Sequence, selection and iteration') +
+      '<div class="grid"><div class="col"><div class="card"><h3>Your flowchart</h3><div class="fcwrap"><div class="fc tea" id="fc">' + teaFlowSvg() + over + labs + '</div></div></div>' + hintCard('bronze') + '</div>' +
+      '<div class="col sticky"><div class="card tint"><h3>Blocks</h3><p class="small">Not every block belongs in your flowchart.</p><div class="pal">' + (pal || '<span class="small">All blocks used.</span>') + '</div></div>' +
+      '<div class="card"><h3>Test it</h3><p class="small" id="custline"><b>' + esc(cust.n) + ':</b> ' + esc(cust.d) + '</p>' + kitchenSvg() +
+      '<p class="label-k" id="kstat">' + kStatus(k) + '</p>' +
+      '<div class="row"><button class="btn go big" data-a="trun"' + (full && !ui.running ? '' : ' disabled') + '>▶ Run</button>' + (full ? '' : '<span class="small">Fill every empty shape first.</span>') + '</div>' +
+      '<div id="fb">' + msgHtml() + '</div><div class="tablewrap" id="tres">' + (ui.results || '') + '</div></div></div></div>';
+  }
+  function kStatus(k) {
+    var kettle = k.water ? (k.heat >= 3 ? 'boiling' : k.on ? 'heating' : 'full') : 'empty';
+    return 'Kettle: ' + kettle + ' · Tea: ' + (k.tea ? 'made' : 'not yet') + ' · Milk: ' + (k.milk ? 'yes' : 'no') + ' · Sugars: ' + (k.sugars || 0);
+  }
+  function kClass(k) {
+    return ['kitchen', k.water ? 'has-water' : '', k.heat >= 3 ? 'boiled' : '', k.tea || k.mug ? 'has-mug' : '', k.tea ? 'poured brewed' : '', k.milk ? 'milk' : ''].join(' ');
+  }
+  function teaRun(c, trace) {
+    var k = { water: c.water, on: false, heat: 0, tea: false, milk: false, sugars: 0, served: false }, ev = [], steps = 0, err = null;
+    function rec(id) { if (trace) ev.push({ id: id, k: JSON.parse(JSON.stringify(k)) }); }
+    function q(id) {
+      var b = S.t[id];
+      switch (b) {
+        case 't1': return k.water;
+        case 't2': return k.heat >= 3;
+        case 't3': return c.milk;
+        case 't5': return k.sugars >= c.sugars;
+        case 't7': return k.on;
+        case 't8': return c.sugars > 0;
+      }
+      throw 'A step block cannot go in a diamond.';
+    }
+    function act(id) {
+      var b = S.t[id];
+      switch (b) {
+        case 't4': if (!k.tea) throw 'There is no tea in the mug yet to add milk to.'; k.milk = true; return;
+        case 't6': if (!k.tea) throw 'There is no tea in the mug yet.'; k.sugars++; if (k.sugars > 8) throw 'The robot keeps adding sugar and never stops: an infinite loop!'; return;
+        case 't9': throw '“Add sugar”: how much? A computer needs an exact amount.';
+        case 't10': throw 'A whole bottle of milk overflows the mug!';
+      }
+      throw 'A question cannot go in a step shape.';
+    }
+    try {
+      rec('start');
+      rec('q1'); if (!q('q1')) { k.water = true; rec('p1'); }
+      k.on = true; rec('p2');
+      while (true) {
+        if (++steps > 30) throw 'The robot waits forever: the loop never ends.';
+        rec('q2'); if (q('q2')) break;
+        if (k.on && k.water) k.heat++; rec('p3');
+      }
+      if (!k.water) throw 'The kettle is empty, so there is no water to pour.';
+      if (k.heat < 3) throw 'The water was poured before the kettle had boiled. That makes a cold, weak cup of tea.';
+      k.tea = true; rec('p4');
+      rec('q3'); if (q('q3')) { act('p5'); rec('p5'); }
+      rec('io1');
+      var n = 0;
+      while (true) {
+        if (++n > 12) throw 'The robot keeps adding sugar and never stops: an infinite loop!';
+        rec('q4'); if (q('q4')) break;
+        act('p6'); rec('p6');
+      }
+      k.served = true; rec('io2'); rec('end');
+    } catch (e) { err = String(e); }
+    var ok = !err && k.served && k.milk === c.milk && k.sugars === c.sugars;
+    return { k: k, err: err, ok: ok, ev: ev };
+  }
+  function runBronze() {
+    if (ui.running) return;
+    ui.running = true; ui.msg = null; ui.results = null; ui.cust = 0; ui.k = { water: CUSTOMERS[0].water }; render();
+    var r = teaRun(CUSTOMERS[0], true), i = 0, svg = document.getElementById('kitchen'), st = document.getElementById('kstat');
+    (function next() {
+      app.querySelectorAll('#fc .hl').forEach(function (e) { e.classList.remove('hl'); });
+      if (i >= r.ev.length) { ui.k = r.k; return afterBronze(r); }
+      var e = r.ev[i];
+      var shp = app.querySelector('#fc [data-s="' + e.id + '"]'); if (shp) shp.classList.add('hl');
+      svg.setAttribute('class', kClass(e.k)); st.textContent = kStatus(e.k);
+      i++; ui.timer = setTimeout(next, reduce() ? 60 : 380);
+    })();
+  }
+  function afterBronze(first) {
+    ui.running = false;
+    var allOk = true;
+    var rows = CUSTOMERS.map(function (c, n) {
+      var r = n === 0 ? first : teaRun(c, false); if (!r.ok) allOk = false;
+      var want = (c.milk ? 'milk' : 'no milk') + ', ' + c.sugars + ' sugar' + (c.sugars === 1 ? '' : 's');
+      var got = r.err ? esc(r.err) : (r.k.milk ? 'milk' : 'no milk') + ', ' + r.k.sugars + ' sugar' + (r.k.sugars === 1 ? '' : 's');
+      return '<tr><td>' + c.n + '</td><td>' + want + '</td><td>' + got + '</td><td class="' + (r.ok ? 'pass' : 'fail') + '">' + (r.ok ? '✓ Pass' : '✗ Fail') + '</td></tr>';
+    }).join('');
+    ui.results = '<table class="res"><thead><tr><th>Customer</th><th>Wanted</th><th>Got</th><th>Result</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    if (allOk) {
+      S.done.bronze = true;
+      ui.msg = { c: 'ok', h: '<b>Bronze complete. Every customer got the right cup of tea!</b> Your flowchart uses all three building blocks: <b>sequence</b> (steps in order), <b>selection</b> (milk or no milk) and <b>iteration</b> (waiting for the kettle, adding sugars one at a time).' };
+      render(); confetti();
+    } else {
+      ui.msg = { c: 'no', h: '<b>Not every customer got the right tea.</b> Look at which customer failed and why. Click a shape to clear it, change the block and run again.' };
+      render();
+    }
+  }
+
+  var HINTS = {
+    bronze: ['Start with the kettle: if there is no water, fill it. Which question decides that?', 'Waiting for the kettle is a loop: keep waiting until the answer to the diamond is yes.', 'Add sugar one at a time, and keep asking whether enough sugars have been added.'],
+    silver: ['Start by remembering the first score as the best so far.', 'The diamond under it keeps the loop going while there are more scores to check.', 'Only change best when the new score is bigger than best.'],
+    gold: ['Compare neighbours. If the left number is bigger, they are in the wrong order.', 'Fix the wrong order by swapping, not by deleting.', 'One pass is not always enough. Keep repeating until a whole pass makes no swaps.']
+  };
+  function kitchenSvg() { return '<svg id="kitchen" class="' + kClass(ui.k || {}) + '" viewBox="0 0 420 230" role="img" aria-label="A kitchen with a kettle and a mug that change as your algorithm runs">' +
+    '<line class="k-line" x1="10" y1="205" x2="410" y2="205"/>' +
+    '<path class="steam" d="M90 60 q8 -12 0 -24 q-8 -12 0 -24"/><path class="steam" d="M110 64 q8 -12 0 -24 q-8 -12 0 -24"/>' +
+    '<path class="k-body" d="M150 120 l34 -18 l6 8 l-30 22 z"/>' +
+    '<rect class="k-body" x="50" y="80" width="110" height="122" rx="16"/>' +
+    '<rect class="k-water" x="57" y="130" width="96" height="66" rx="10"/>' +
+    '<path class="k-line" d="M68 80 q37 -34 74 0"/>' +
+    '<circle class="k-light" cx="105" cy="188" r="6"/>' +
+    '<g class="mug"><path class="k-body" d="M330 140 a22 22 0 1 1 0 40"/><rect class="k-body" x="250" y="118" width="82" height="86" rx="10"/>' +
+    '<rect class="liquid" x="256" y="134" width="70" height="64" rx="6"/>' +
+    '<g class="bag"><line class="k-line" x1="300" y1="140" x2="342" y2="98"/><rect x="342" y="86" width="20" height="16" rx="2" fill="#F3A712"/><rect x="282" y="146" width="28" height="30" rx="4" fill="#C9A27A" stroke="#8B5A2B" stroke-width="2"/></g></g>' +
+    '</svg>'; }
+
+  function setFb(c, h) { ui.msg = { c: c, h: h }; var f = document.getElementById('fb'); if (f) f.innerHTML = msgHtml(); }
+  function msgHtml() {
+    if (!ui.msg) return '';
+    var next = '';
+    if (ui.msg.c === 'ok' && S.level !== 'done') {
+      var nx = LEVELS[LEVELS.indexOf(S.level) + 1];
+      next = '<div class="row" style="margin-top:10px"><button class="btn go" data-a="goto" data-l="' + nx + '">' + (nx === 'done' ? 'See your results →' : 'Go to ' + LNAME[nx] + ' →') + '</button></div>';
+    }
+    return '<div class="fb ' + ui.msg.c + '">' + ui.msg.h + next + '</div>';
+  }
+
+  // ================= SILVER: find the highest score (selection + iteration) =================
+  var SB = {
+    s1: { t: 'p', x: 'Set best to the first score' }, s2: { t: 'd', x: 'Are there more scores to check?' },
+    s3: { t: 'p', x: 'Look at the next score' }, s4: { t: 'd', x: 'Is this score bigger than best?' },
+    s5: { t: 'p', x: 'Set best to this score' }, s6: { t: 'o', x: 'Output best' },
+    s7: { t: 'd', x: 'Is this score smaller than best?' }, s8: { t: 'o', x: 'Output the first score' },
+    s9: { t: 'p', x: 'Add this score to best' }, s10: { t: 'p', x: 'Guess the biggest score' }
+  };
+  var S_ORDER = ['s4', 's9', 's6', 's1', 's7', 's3', 's10', 's2', 's8', 's5'];
+  var SLOTS = { A: { t: 'p', x: 200, y: 130, w: 240, h: 56 }, B: { t: 'd', x: 200, y: 260, w: 180, h: 70 }, C: { t: 'p', x: 200, y: 390, w: 240, h: 56 },
+    D: { t: 'd', x: 200, y: 520, w: 180, h: 70 }, F: { t: 'p', x: 200, y: 650, w: 240, h: 56 }, E: { t: 'o', x: 475, y: 260, w: 160, h: 56 } };
+  var TNAME = { p: 'a rectangle (a step)', d: 'a diamond (a yes or no question)', o: 'a parallelogram (an output)' };
+  var S_TESTS = [[12, 7, 19, 4, 15], [21, 3, 8], [5, 9, 30]];
+  function pct(v, of) { return (v / of * 100) + '%'; }
+  function renderSilver() {
+    var used = {}; Object.keys(S.s).forEach(function (k) { if (S.s[k]) used[S.s[k]] = 1; });
+    var slots = Object.keys(SLOTS).map(function (k) {
+      var s = SLOTS[k], b = S.s[k];
+      return '<button class="slot' + (b ? '' : ' empty') + (ui.active === k ? ' active' : '') + '" data-a="sslot" data-k="' + k + '" style="left:' + pct(s.x, 600) + ';top:' + pct(s.y, 760) + ';width:' + pct(s.w, 600) + ';height:' + pct(s.h, 760) + '" aria-label="' + (b ? SB[b].x + '. Click to remove' : 'Empty ' + TNAME[s.t] + '. Click to choose it') + '">' + (b ? esc(SB[b].x) : 'empty') + '</button>';
+    }).join('');
+    var pal = S_ORDER.filter(function (id) { return !used[id]; }).map(function (id) { return '<button data-a="sadd" data-id="' + id + '"><span class="ico ' + SB[id].t + '" aria-hidden="true"></span>' + esc(SB[id].x) + '</button>'; }).join('');
+    var full = Object.keys(S.s).every(function (k) { return S.s[k]; });
+    return head('silver', 'Find the highest score', 'The House quiz has a list of scores. Complete the flowchart so it finds the <b>highest score</b>. Click an empty shape, then click a block. Each shape only takes the right kind of block.', 'Selection and iteration') +
+      '<div class="grid"><div class="col"><div class="card"><h3>Your flowchart</h3><div class="fcwrap"><div class="fc" id="fc">' + FC_SVG + slots +
+      '<span class="term" style="left:' + pct(200, 600) + ';top:' + pct(40, 760) + '">Start</span><span class="term" style="left:' + pct(475, 600) + ';top:' + pct(370, 760) + '">End</span>' +
+      '<span class="lab" style="left:' + pct(222, 600) + ';top:' + pct(335, 760) + '">Yes</span><span class="lab" style="left:' + pct(358, 600) + ';top:' + pct(244, 760) + '">No</span>' +
+      '<span class="lab" style="left:' + pct(222, 600) + ';top:' + pct(595, 760) + '">Yes</span><span class="lab" style="left:' + pct(70, 600) + ';top:' + pct(504, 760) + '">No</span>' +
+      '</div></div></div>' + hintCard('silver') + '</div>' +
+      '<div class="col"><div class="card tint"><h3>Blocks</h3><p class="small">Rectangle = a step. Diamond = a yes or no question. Parallelogram = output.</p><div class="pal">' + (pal || '<span class="small">All blocks used.</span>') + '</div></div>' +
+      '<div class="card"><h3>Test it</h3><p class="small">Your flowchart is tested on three lists of scores.</p><div class="vars" id="svars">' + scoreCells(S_TESTS[0], ui.sfinal ? ui.sfinal.i : -1) + '<span class="var" id="sbest">best = ' + (ui.sfinal && ui.sfinal.best !== undefined ? ui.sfinal.best : '?') + '</span></div>' +
+      '<div class="row"><button class="btn go big" data-a="srun"' + (full && !ui.running ? '' : ' disabled') + '>▶ Run</button>' + (full ? '' : '<span class="small">Fill every shape first.</span>') + '</div>' +
+      '<div id="fb">' + msgHtml() + '</div><div class="tablewrap" id="sres">' + (ui.results || '') + '</div></div></div></div>';
+  }
+  var FC_SVG = '<svg viewBox="0 0 600 760" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker></defs>' +
+    '<rect class="shape-t" x="140" y="20" width="120" height="40" rx="20"/>' +
+    '<rect class="shape-p" data-s="A" x="70" y="100" width="260" height="60" rx="4"/>' +
+    '<path class="shape-d" data-s="B" d="M200 205 L340 260 L200 315 L60 260 Z"/>' +
+    '<rect class="shape-p" data-s="C" x="70" y="360" width="260" height="60" rx="4"/>' +
+    '<path class="shape-d" data-s="D" d="M200 465 L340 520 L200 575 L60 520 Z"/>' +
+    '<rect class="shape-p" data-s="F" x="70" y="620" width="260" height="60" rx="4"/>' +
+    '<path class="shape-o" data-s="E" d="M398 230 L580 230 L552 290 L370 290 Z"/>' +
+    '<rect class="shape-t" x="415" y="350" width="120" height="40" rx="20"/>' +
+    '<path class="arrow" marker-end="url(#ah)" d="M200 60 V98"/><path class="arrow" marker-end="url(#ah)" d="M200 160 V203"/>' +
+    '<path class="arrow" marker-end="url(#ah)" d="M200 315 V358"/><path class="arrow" marker-end="url(#ah)" d="M200 420 V463"/>' +
+    '<path class="arrow" marker-end="url(#ah)" d="M200 575 V618"/><path class="arrow" marker-end="url(#ah)" d="M340 260 H378"/>' +
+    '<path class="arrow" marker-end="url(#ah)" d="M475 290 V348"/>' +
+    '<path class="arrow" d="M70 650 H24 V260"/><path class="arrow" d="M60 520 H24"/><path class="arrow" marker-end="url(#ah)" d="M24 260 H58"/>' +
+    '</svg>';
+  function scoreCells(list, cur) { return list.map(function (n, i) { return '<span class="cell' + (i === cur ? ' cur' : i < cur ? ' done' : '') + '">' + n + '</span>'; }).join(''); }
+  function silverRun(list, trace) {
+    var st = { best: undefined, i: -1, cur: undefined, out: undefined }, ev = [], steps = 0, err = null;
+    function rec(slot) { if (trace) ev.push({ slot: slot, best: st.best, i: st.i }); }
+    function ex(slot) {
+      var id = S.s[slot]; rec(slot);
+      switch (id) {
+        case 's1': st.best = list[0]; st.i = 0; break;
+        case 's3': st.i++; if (st.i >= list.length) throw 'There are no more scores to look at.'; st.cur = list[st.i]; break;
+        case 's5': if (st.cur === undefined) throw 'There is no score being looked at yet.'; st.best = st.cur; break;
+        case 's9': if (st.best === undefined) throw 'best has no value yet.'; st.best = st.best + (st.cur || 0); break;
+        case 's10': throw 'A computer cannot guess. It needs exact steps.';
+        case 's6': if (st.best === undefined) throw 'best has no value yet, so there is nothing to output.'; st.out = st.best; break;
+        case 's8': st.out = list[0]; break;
+        default: throw 'A question block cannot go in a step shape.';
+      }
+    }
+    function cond(slot) {
+      var id = S.s[slot]; rec(slot);
+      switch (id) {
+        case 's2': return st.i < list.length - 1;
+        case 's4': if (st.best === undefined) throw 'best has no value yet.'; return st.cur !== undefined && st.cur > st.best;
+        case 's7': if (st.best === undefined) throw 'best has no value yet.'; return st.cur !== undefined && st.cur < st.best;
+      }
+      throw 'A step block cannot go in a diamond.';
+    }
+    try {
+      ex('A');
+      while (true) {
+        if (++steps > 60) throw 'Your flowchart never reaches End. It is stuck in an infinite loop.';
+        if (!cond('B')) { ex('E'); break; }
+        ex('C');
+        if (cond('D')) ex('F');
+      }
+    } catch (e) { err = String(e); }
+    return { out: st.out, err: err, ev: ev };
+  }
+  function runSilver() {
+    if (ui.running) return;
+    ui.running = true; ui.msg = null; ui.results = null; ui.sfinal = null; render();
+    var list = S_TESTS[0], r = silverRun(list, true), k = 0;
+    var vars = document.getElementById('svars');
+    (function step() {
+      app.querySelectorAll('#fc .hl').forEach(function (e) { e.classList.remove('hl'); });
+      if (k >= r.ev.length) { var le = r.ev[r.ev.length - 1]; ui.sfinal = le ? { i: le.i, best: le.best } : null; return afterSilver(); }
+      var e = r.ev[k];
+      var shp = app.querySelector('#fc [data-s="' + e.slot + '"]'); if (shp) shp.classList.add('hl');
+      vars.innerHTML = scoreCells(list, e.i) + '<span class="var">best = ' + (e.best === undefined ? '?' : e.best) + '</span>';
+      k++; ui.timer = setTimeout(step, reduce() ? 60 : 420);
+    })();
+  }
+  function afterSilver() {
+    ui.running = false;
+    var allOk = true;
+    var rows = S_TESTS.map(function (list, n) {
+      var r = silverRun(list, false), want = Math.max.apply(null, list), ok = !r.err && r.out === want;
+      if (!ok) allOk = false;
+      return '<tr><td>' + (n + 1) + '</td><td>' + list.join(', ') + '</td><td>' + want + '</td><td>' + (r.err ? esc(r.err) : r.out === undefined ? 'nothing' : r.out) + '</td><td class="' + (ok ? 'pass' : 'fail') + '">' + (ok ? '✓ Pass' : '✗ Fail') + '</td></tr>';
+    }).join('');
+    ui.results = '<table class="res"><thead><tr><th>Test</th><th>Scores</th><th>Should output</th><th>Your flowchart output</th><th>Result</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    if (allOk) {
+      S.done.silver = true;
+      ui.msg = { c: 'ok', h: '<b>Silver complete!</b> Your flowchart passed every test. The diamonds make decisions (<b>selection</b>) and the loop back up repeats (<b>iteration</b>).' };
+      render(); confetti();
+    } else {
+      ui.msg = { c: 'no', h: '<b>Not all tests passed.</b> Look at which test failed. Click a shape to remove its block, swap it, and run again.' };
+      render();
+    }
+  }
+
+  // ================= GOLD: put a list of numbers in order (sorting) =================
+  var GB = {
+    loop: [['until', 'until a whole pass makes no swaps'], ['three', '3 times'], ['first', 'until the first number is the smallest']],
+    pass: [['all', 'every pair of neighbours, left to right'], ['one', 'the first pair only']],
+    cond: [['gt', 'the left number is bigger than the right number'], ['lt', 'the left number is smaller than the right number'], ['ne', 'the two numbers are different']],
+    act: [['swap', 'swap them'], ['del', 'remove the bigger number'], ['end', 'move the left number to the end of the list']]
+  };
+  var G_TESTS = [[5, 2, 8, 1, 9, 3], [9, 8, 7, 6, 5, 4], [1, 5, 3, 4, 2]];
+  var HAND_START = [7, 3, 9, 1, 5, 8];
+  function gText(k) { var v = S.g[k]; if (!v) return null; for (var i = 0; i < GB[k].length; i++) if (GB[k][i][0] === v) return GB[k][i][1]; return null; }
+  function renderGold() {
+    if (!S.g.hand) {
+      if (!ui.hand) ui.hand = HAND_START.slice();
+      var cells = ui.hand.map(function (n, i) { return '<span class="ncard">' + n + '</span>' + (i < ui.hand.length - 1 ? '<button class="swapbtn" data-a="hswap" data-i="' + i + '" aria-label="Swap ' + n + ' and ' + ui.hand[i + 1] + '">⇄</button>' : ''); }).join('');
+      return head('gold', 'Put a list of numbers in order', 'Part 1: sort these cards by hand, smallest to biggest. You can only <b>swap two neighbours</b> at a time. Notice what you do each time: that is your algorithm.', 'Sorting') +
+        '<div class="card"><div class="cards">' + cells + '</div><p class="counts">Swaps: ' + ui.handSwaps + '</p><div id="fb">' + msgHtml() + '</div><p><button class="linkish" data-a="hskip">Skip to Part 2</button></p></div>';
+    }
+    function slot(k, ph) { var t = gText(k); return '<span class="gslot' + (t ? ' filled' : '') + '" data-gs="' + k + '">' + (t ? esc(t) : ph) + '</span>'; }
+    var full = S.g.loop && S.g.pass && S.g.cond && S.g.act;
+    var groups = [['loop', 'REPEAT …'], ['pass', 'GO THROUGH …'], ['cond', 'IF …'], ['act', 'THEN …']].map(function (g) {
+      return '<h4>' + g[1] + '</h4><div class="opts">' + GB[g[0]].map(function (o) { return '<button data-a="gpick" data-k="' + g[0] + '" data-v="' + o[0] + '" aria-pressed="' + (S.g[g[0]] === o[0]) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>';
+    }).join('');
+    return head('gold', 'Put a list of numbers in order', 'Part 2: build the algorithm you used. Choose one block for each gap, then press <b>Run</b>. It is tested on three different lists.', 'Sorting') +
+      '<div class="grid"><div class="col"><div class="card"><h3>Your algorithm</h3><div class="code">' +
+      '<div class="cb loop"><div class="line"><span class="kw">REPEAT</span>' + slot('loop', 'choose when to stop') + '</div>' +
+      '<div class="cb pass"><div class="line"><span class="kw">GO THROUGH</span>' + slot('pass', 'choose which pairs') + '</div>' +
+      '<div class="cb ifb"><div class="line"><span class="kw">IF</span>' + slot('cond', 'choose a question') + '</div><div class="line"><span class="kw">THEN</span>' + slot('act', 'choose an action') + '</div></div></div></div>' +
+      '<div class="cb out"><div class="line"><span class="kw">OUTPUT</span> the list</div></div></div>' +
+      '<div class="row"><button class="btn go big" data-a="grun"' + (full && !ui.running ? '' : ' disabled') + '>▶ Run</button>' + (ui.running ? '<button class="btn" data-a="gskip">Skip animation</button>' : '') + '</div></div>' + hintCard('gold') + '</div>' +
+      '<div class="col"><div class="card tint gpal"><h3>Blocks</h3>' + groups + '</div>' +
+      '<div class="card"><h3>Test it</h3><div class="bars" id="bars">' + barsHtml(ui.gfinal ? ui.gfinal.a : G_TESTS[0], -1, false) + '</div><p class="counts" id="gcounts">' + (ui.gfinal ? ui.gfinal.txt : 'Comparisons: 0 · Swaps: 0 · Passes: 0') + '</p>' +
+      '<div id="fb">' + msgHtml() + '</div><div class="tablewrap" id="gres">' + (ui.results || '') + '</div></div></div></div>';
+  }
+  function barsHtml(arr, j, swapped) {
+    var max = 10;
+    return arr.map(function (n, i) { return '<div class="bar' + ((i === j || i === j + 1) ? (swapped ? ' sw' : ' cmp') : '') + '" style="height:' + Math.max(14, n / max * 100) + '%">' + n + '</div>'; }).join('');
+  }
+  function goldRun(list, trace) {
+    var a = list.slice(), ev = [], cmp = 0, sw = 0, passes = 0, err = null;
+    try {
+      while (true) {
+        passes++; if (passes > 25) throw 'Your algorithm never stops. It is stuck in an infinite loop.';
+        var changed = false;
+        var last = S.g.pass === 'all' ? a.length - 2 : 0;
+        for (var j = 0; j <= last && j < a.length - 1; j++) {
+          cmp++; if (trace) ev.push({ a: a.slice(), j: j, s: false });
+          var L = a[j], R = a[j + 1];
+          var c = S.g.cond === 'gt' ? L > R : S.g.cond === 'lt' ? L < R : L !== R;
+          if (c) {
+            changed = true; sw++;
+            if (S.g.act === 'swap') { a[j] = R; a[j + 1] = L; }
+            else if (S.g.act === 'del') { a.splice(L > R ? j : j + 1, 1); }
+            else { a.push(a.splice(j, 1)[0]); }
+            if (trace) ev.push({ a: a.slice(), j: j, s: true });
+          }
+        }
+        if (S.g.loop === 'until' && !changed) break;
+        if (S.g.loop === 'three' && passes >= 3) break;
+        if (S.g.loop === 'first' && a[0] === Math.min.apply(null, a)) break;
+      }
+    } catch (e) { err = String(e); }
+    var sorted = list.slice().sort(function (x, y) { return x - y; });
+    var ok = !err && a.length === sorted.length && a.every(function (v, i) { return v === sorted[i]; });
+    return { a: a, ok: ok, err: err, ev: ev, cmp: cmp, sw: sw, passes: passes };
+  }
+  function runGold() {
+    if (ui.running) return;
+    ui.running = true; ui.msg = null; ui.results = null; ui.gfinal = null; render();
+    var r = goldRun(G_TESTS[0], true), k = 0, cmpN = 0, swN = 0, bars = document.getElementById('bars'), cnt = document.getElementById('gcounts');
+    ui.skip = false;
+    (function step() {
+      if (ui.skip || k >= r.ev.length || r.ev.length > 400) {
+        bars.innerHTML = barsHtml(r.a, -1, false);
+        cnt.textContent = 'Comparisons: ' + r.cmp + ' · Swaps: ' + r.sw + ' · Passes: ' + Math.min(r.passes, 25);
+        ui.gfinal = { a: r.a, txt: cnt.textContent };
+        return afterGold();
+      }
+      var e = r.ev[k];
+      if (e.s) swN++; else cmpN++;
+      bars.innerHTML = barsHtml(e.a, e.j, e.s);
+      cnt.textContent = 'Comparisons: ' + cmpN + ' · Swaps: ' + swN;
+      k++; ui.timer = setTimeout(step, reduce() ? 40 : Math.max(40, Math.min(260, 12000 / r.ev.length)));
+    })();
+  }
+  function afterGold() {
+    ui.running = false;
+    var allOk = true;
+    var rows = G_TESTS.map(function (list, n) {
+      var r = goldRun(list, false); if (!r.ok) allOk = false;
+      return '<tr><td>' + (n + 1) + '</td><td>' + list.join(', ') + '</td><td>' + (r.err ? esc(r.err) : r.a.join(', ')) + '</td><td>' + (r.err ? '-' : r.cmp) + '</td><td class="' + (r.ok ? 'pass' : 'fail') + '">' + (r.ok ? '✓ Pass' : '✗ Fail') + '</td></tr>';
+    }).join('');
+    ui.results = '<table class="res"><thead><tr><th>Test</th><th>Start</th><th>Your output</th><th>Comparisons</th><th>Result</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    if (allOk) {
+      S.done.gold = true;
+      ui.msg = { c: 'ok', h: '<b>Gold complete!</b> You built a real sorting algorithm called <b>bubble sort</b>: the biggest numbers “bubble” to the end on each pass. Computers use sorting algorithms to rank search results, leaderboards and prices.' };
+      render(); confetti();
+    } else {
+      ui.msg = { c: 'no', h: '<b>Not all tests passed.</b> Your algorithm worked on some lists but not all. Testing with different lists finds bugs. Change a block and run again.' };
+      render();
+    }
+  }
+
+  // ================= DONE =================
+  function renderDone() {
+    return '<div class="card"><div class="lvlhead"><span class="big m-done">✓</span><div><p class="eyebrow">Finished</p><h2>You are an algorithm builder</h2></div></div>' +
+      '<p class="lede">You wrote algorithms using all three building blocks of programming.</p>' +
+      '<div class="tablewrap"><table class="res"><thead><tr><th>Level</th><th>Task</th><th>Building block</th></tr></thead><tbody>' +
+      '<tr><td>Bronze</td><td>Make a cup of tea</td><td>All three in one flowchart: <b>sequence</b>, <b>selection</b> (milk?) and <b>iteration</b> (wait, add sugars)</td></tr>' +
+      '<tr><td>Silver</td><td>Find the highest score</td><td><b>Selection</b> and <b>iteration</b> working on data</td></tr>' +
+      '<tr><td>Gold</td><td>Sort a list of numbers</td><td>All three together: <b>bubble sort</b></td></tr></tbody></table></div></div>' +
+      '<div class="card tint"><h3>Write in your book</h3><ol class="qs"><li>In Bronze, why did adding sugar need a loop instead of one “Add sugar” step?</li><li>What does a diamond mean in a flowchart? Give an example from Silver.</li><li>Explain bubble sort in your own words. Why did “3 times” not work for every list?</li></ol></div>' +
+      '<div class="card"><div class="row"><button class="btn" data-a="restart">Start again from Bronze</button></div></div>';
+  }
+
+  // ================= shared =================
+  function head(l, title, text, block) {
+    return '<div class="card"><div class="lvlhead"><span class="big m-' + l + '">' + LNAME[l].toUpperCase() + '</span><div><p class="eyebrow">' + LNAME[l] + ' level · ' + block + '</p><h2>' + title + '</h2></div></div><p class="lede">' + text + '</p></div>';
+  }
+  function hintCard(l) {
+    var n = S.hints[l], list = HINTS[l];
+    var shown = list.slice(0, n).map(function (h, i) { return '<p class="fb tip"><b>Hint ' + (i + 1) + ':</b> ' + esc(h) + '</p>'; }).join('');
+    return '<div class="card tint"><div class="row" style="justify-content:space-between"><h3>Stuck?</h3>' + (n < list.length ? '<button class="btn" data-a="hint" data-l="' + l + '">Show hint ' + (n + 1) + ' of ' + list.length + '</button>' : '<span class="small">All hints shown.</span>') + '</div>' + shown + '</div>';
+  }
+  function reduce() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  function progressPct() {
+    var p = 0;
+    p += S.done.bronze ? 30 : T_SLOTS.filter(function (k) { return S.t[k]; }).length * 4;
+    var sf = Object.keys(S.s).filter(function (k) { return S.s[k]; }).length;
+    p += S.done.silver ? 30 : Math.min(24, sf * 4);
+    var gf = ['loop', 'pass', 'cond', 'act'].filter(function (k) { return S.g[k]; }).length;
+    p += S.done.gold ? 40 : (S.g.hand ? 10 : 0) + gf * 4;
+    return Math.round(Math.min(100, p));
+  }
+  function canGo(l) { return l === 'bronze' || (l === 'silver' && S.done.bronze) || (l === 'gold' && S.done.silver) || (l === 'done' && S.done.gold); }
+  function renderChrome() {
+    document.getElementById('stepper').innerHTML = LEVELS.map(function (l) {
+      var won = l !== 'done' && S.done[l];
+      return '<li><button data-a="goto" data-l="' + l + '"' + (S.level === l ? ' aria-current="step"' : '') + (canGo(l) ? '' : ' disabled') + '><span class="medal m-' + l + '">' + (won ? '✓' : l === 'done' ? '★' : LNAME[l][0]) + '</span>' + LNAME[l] + '</button></li>';
+    }).join('');
+    var p = progressPct();
+    document.getElementById('plevel').textContent = S.level === 'done' ? 'All levels complete' : LNAME[S.level] + ' level';
+    document.getElementById('ppct').textContent = p + '% complete';
+    var bar = document.getElementById('pbar'); bar.setAttribute('aria-valuenow', p); bar.firstElementChild.style.width = p + '%';
+    document.getElementById('medals').innerHTML = ['bronze', 'silver', 'gold'].map(function (l) { return '<span class="m-' + l + (S.done[l] ? ' won' : '') + '" title="' + LNAME[l] + (S.done[l] ? ' won' : ' not won yet') + '">' + LNAME[l][0] + '</span>'; }).join('');
+  }
+  function render() {
+    renderChrome();
+    app.innerHTML = S.level === 'bronze' ? renderBronze() : S.level === 'silver' ? renderSilver() : S.level === 'gold' ? renderGold() : renderDone();
+  }
+  function keep(fn) { var y = window.scrollY; fn(); window.scrollTo(0, y); }
+
+  // ================= confetti =================
+  function confetti() {
+    if (reduce()) return;
+    var old = document.getElementById('confetti'); if (old) old.remove();
+    var c = document.createElement('canvas'); c.id = 'confetti'; c.setAttribute('aria-hidden', 'true'); document.body.appendChild(c);
+    var ctx = c.getContext('2d'); if (!ctx) return;
+    var dpr = window.devicePixelRatio || 1, W = window.innerWidth, H = window.innerHeight;
+    c.width = W * dpr; c.height = H * dpr; ctx.scale(dpr, dpr);
+    var cols = ['#F3A712', '#02C39A', '#028090', '#5BA8F5', '#E4572E', '#FFD166', '#A8632C', '#B8C6D0'];
+    var bits = [];
+    for (var i = 0; i < 170; i++) bits.push({ x: Math.random() * W, y: -20 - Math.random() * H * 0.6, w: 6 + Math.random() * 6, h: 10 + Math.random() * 8, vy: 2.5 + Math.random() * 3.5, vx: -1.5 + Math.random() * 3, r: Math.random() * 6.28, vr: -0.2 + Math.random() * 0.4, c: cols[i % cols.length], sw: Math.random() * 6.28 });
+    var start = performance.now();
+    (function frame(now) {
+      var t = now - start, alive = false; ctx.clearRect(0, 0, W, H);
+      bits.forEach(function (b) {
+        b.y += b.vy; b.sw += 0.05; b.x += b.vx + Math.sin(b.sw) * 0.8; b.r += b.vr; if (b.y < H + 30) alive = true;
+        ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.r); ctx.globalAlpha = t > 3200 ? Math.max(0, 1 - (t - 3200) / 600) : 1;
+        ctx.fillStyle = b.c; ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); ctx.restore();
+      });
+      if (alive && t < 3800) requestAnimationFrame(frame); else c.remove();
+    })(start);
+  }
+
+  // ================= events =================
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'goto') { var l = b.getAttribute('data-l'); if (canGo(l)) { clearTimeout(ui.timer); ui.running = false; S.level = l; ui.msg = null; ui.results = null; ui.active = null; ui.k = null; ui.sfinal = null; ui.gfinal = null; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } return; }
+    if (a === 'hint') { var hl = b.getAttribute('data-l'); S.hints[hl]++; keep(render); return; }
+    if (ui.running && a !== 'gskip') return;
+    // bronze
+    if (a === 'tslot') {
+      var tk = b.getAttribute('data-k');
+      if (S.t[tk]) { S.t[tk] = null; ui.active = tk; } else ui.active = ui.active === tk ? null : tk;
+      ui.msg = null; ui.results = null; ui.k = null; keep(render); return;
+    }
+    if (a === 'tadd') {
+      var tid = b.getAttribute('data-id'), tt = TB[tid].t, ttarget = null;
+      if (ui.active && TNODES[ui.active] && TNODES[ui.active].slot) {
+        if (TNODES[ui.active].k !== tt) { ui.msg = { c: 'tip', h: 'That shape is ' + TNAME[TNODES[ui.active].k] + '. “' + esc(TB[tid].x) + '” needs ' + TNAME[tt] + '.' }; keep(render); return; }
+        ttarget = ui.active;
+      } else {
+        ttarget = T_SLOTS.filter(function (k) { return TNODES[k].k === tt && !S.t[k]; })[0];
+        if (!ttarget) { ui.msg = { c: 'tip', h: 'There is no empty ' + TNAME[tt].split(' (')[0] + ' left. Click a filled shape to clear it first.' }; keep(render); return; }
+      }
+      S.t[ttarget] = tid; ui.active = null; ui.msg = null; ui.results = null; ui.k = null; keep(render); return;
+    }
+    if (a === 'trun') return runBronze();
+    // silver
+    if (a === 'sslot') {
+      var k = b.getAttribute('data-k');
+      if (S.s[k]) { S.s[k] = null; ui.active = k; } else ui.active = ui.active === k ? null : k;
+      ui.msg = null; ui.results = null; keep(render); return;
+    }
+    if (a === 'sadd') {
+      var id = b.getAttribute('data-id'), bt = SB[id].t, target = null;
+      if (ui.active) {
+        if (SLOTS[ui.active].t !== bt) { ui.msg = { c: 'tip', h: 'That shape is ' + TNAME[SLOTS[ui.active].t] + '. “' + esc(SB[id].x) + '” needs ' + TNAME[bt] + '.' }; keep(render); return; }
+        target = ui.active;
+      } else {
+        target = Object.keys(SLOTS).filter(function (k) { return SLOTS[k].t === bt && !S.s[k]; })[0];
+        if (!target) { ui.msg = { c: 'tip', h: 'There is no empty ' + TNAME[bt].split(' (')[0] + ' left. Click a filled shape to clear it first.' }; keep(render); return; }
+      }
+      S.s[target] = id; ui.active = null; ui.msg = null; ui.results = null; keep(render); return;
+    }
+    if (a === 'srun') return runSilver();
+    // gold
+    if (a === 'hswap') {
+      var hi = +b.getAttribute('data-i'), tmp = ui.hand[hi]; ui.hand[hi] = ui.hand[hi + 1]; ui.hand[hi + 1] = tmp; ui.handSwaps++;
+      var sorted = ui.hand.every(function (v, x) { return x === 0 || ui.hand[x - 1] <= v; });
+      ui.msg = sorted ? { c: 'ok', h: '<b>Sorted in ' + ui.handSwaps + ' swaps!</b> You compared neighbours and swapped them when the left one was bigger, again and again until nothing needed swapping. Now turn that into an algorithm.' } : null;
+      keep(render);
+      if (sorted) { var fb = document.getElementById('fb'); fb.innerHTML = '<div class="fb ok">' + ui.msg.h + '<div class="row" style="margin-top:10px"><button class="btn go" data-a="hskip">Build the algorithm →</button></div></div>'; }
+      return;
+    }
+    if (a === 'hskip') { S.g.hand = true; ui.msg = null; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (a === 'gpick') { S.g[b.getAttribute('data-k')] = b.getAttribute('data-v'); ui.msg = null; ui.results = null; ui.gfinal = null; keep(render); return; }
+    if (a === 'grun') return runGold();
+    if (a === 'gskip') { ui.skip = true; return; }
+    if (a === 'restart') {
+      S = { level: 'bronze', done: { bronze: false, silver: false, gold: false }, t: { q1: null, q2: null, q3: null, p5: null, q4: null, p6: null }, s: { A: null, B: null, C: null, D: null, F: null, E: null },
+        g: { hand: false, loop: null, pass: null, cond: null, act: null }, hints: { bronze: 0, silver: 0, gold: 0 } };
+      ui.msg = null; ui.results = null; ui.active = null; ui.hand = null; ui.handSwaps = 0; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return;
+    }
+  });
+
+  render();
+})();
+</script>
+
+</body></html>
