@@ -1,0 +1,957 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Build Your PC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caladea:wght@400;700&family=Carlito:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: a workbench. The PC being built stays in view on the left; the task for each stage sits on the right. Stacks to one column on phones. */
+:root {
+  --bg: #F2F7F6;
+  --surface: #FFFFFF;
+  --surface-2: #E6F3F0;
+  --ink: #13292C;
+  --muted: #4C6A6D;
+  --head: #013438;
+  --teal: #027785;
+  --teal-soft: #CDEDE8;
+  --accent: #F3A712;
+  --accent-ink: #1B1A12;
+  --accent-soft: #FFF3D9;
+  --line: #CBE0DC;
+  --good: #0B7A54;
+  --good-soft: #DDF3EA;
+  --bad: #B33A0E;
+  --bad-soft: #FCE6DC;
+  --case: #FBFDFC;
+  --case-line: #5C7A7D;
+  --part: #9CC9C3;
+  --part-line: #4F7376;
+  --mobo: #D6EBE7;
+  --mobo-line: #9CC9C3;
+  --screen: #0B1F22;
+  --screen-ink: #7CF0C8;
+  --display: 'Caladea', Cambria, Georgia, serif;
+  --body: 'Carlito', Calibri, 'Segoe UI', Arial, sans-serif;
+  --mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A1D20; --surface: #0F282C; --surface-2: #15363B; --ink: #E2F1EE; --muted: #9BBAB6; --head: #E8F6F3;
+    --teal: #4CC7B8; --teal-soft: #1B4A4F; --accent: #F3A712; --accent-ink: #1B1A12; --accent-soft: #3A2F14;
+    --line: #24494E; --good: #45D597; --good-soft: #143A2D; --bad: #FF8D5E; --bad-soft: #3E2117;
+    --case: #13302F; --case-line: #7FA8A6; --part: #3E7470; --part-line: #8FC3BD; --mobo: #1C3F42; --mobo-line: #3E6E70;
+    --screen: #04110F; --screen-ink: #7CF0C8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A1D20; --surface: #0F282C; --surface-2: #15363B; --ink: #E2F1EE; --muted: #9BBAB6; --head: #E8F6F3;
+  --teal: #4CC7B8; --teal-soft: #1B4A4F; --accent: #F3A712; --accent-ink: #1B1A12; --accent-soft: #3A2F14;
+  --line: #24494E; --good: #45D597; --good-soft: #143A2D; --bad: #FF8D5E; --bad-soft: #3E2117;
+  --case: #13302F; --case-line: #7FA8A6; --part: #3E7470; --part-line: #8FC3BD; --mobo: #1C3F42; --mobo-line: #3E6E70;
+  --screen: #04110F; --screen-ink: #7CF0C8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 18px; line-height: 1.45; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { font-family: var(--display); color: var(--head); margin: 0; text-wrap: balance; line-height: 1.15; }
+h1 { font-size: clamp(30px, 4vw, 42px); }
+h2 { font-size: clamp(24px, 3vw, 30px); }
+h3 { font-size: 21px; }
+p { margin: 0; }
+.eyebrow { font-size: 14px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); }
+.lede { color: var(--muted); max-width: 62ch; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+header.top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; }
+header.top .titles { display: flex; flex-direction: column; gap: 4px; }
+.stepper { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.stepper button { display: flex; align-items: center; gap: 8px; border: 2px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px 6px 6px; font-size: 16px; color: var(--muted); }
+.stepper button .n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); font-weight: 700; color: var(--head); font-variant-numeric: tabular-nums; }
+.stepper button[aria-current="step"] { border-color: var(--accent); color: var(--ink); font-weight: 700; }
+.stepper button[aria-current="step"] .n { background: var(--accent); color: var(--accent-ink); }
+.stepper button.done .n { background: var(--teal); color: var(--surface); }
+.stepper button:disabled { opacity: 0.5; cursor: not-allowed; }
+.grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.bench { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 96px); background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+@media (max-width: 900px) { .bench { position: static; } }
+.bench svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 15px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 16px; height: 16px; border-radius: 4px; display: inline-block; }
+.spec { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; font-size: 15px; border-top: 1px solid var(--line); padding-top: 10px; }
+.spec dt { font-weight: 700; color: var(--head); }
+.spec dd { margin: 0; color: var(--muted); }
+.spec .pr { font-family: var(--mono); font-size: 14px; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
+.panel { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card.tint { background: var(--surface-2); border-color: transparent; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { border: 2px solid var(--line); background: var(--surface); border-radius: 10px; padding: 9px 16px; font-weight: 700; }
+.btn:hover { border-color: var(--teal); }
+.btn.primary { background: var(--teal); border-color: var(--teal); color: var(--surface); }
+.btn.big { font-size: 20px; padding: 12px 22px; }
+.btn.go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.linkish { background: none; border: none; padding: 0; color: var(--teal); text-decoration: underline; font-weight: 700; }
+/* Stage 1 */
+.dots { display: flex; gap: 6px; flex-wrap: wrap; }
+.dots i { width: 26px; height: 8px; border-radius: 4px; background: var(--line); }
+.dots i.on { background: var(--teal); }
+.dots i.cur { background: var(--accent); }
+.sentence { font-size: 22px; line-height: 2; }
+.blank { font: inherit; font-size: 20px; width: 9.5em; max-width: 100%; padding: 2px 8px; border: none; border-bottom: 3px solid var(--teal); background: var(--surface-2); color: var(--ink); border-radius: 6px 6px 0 0; }
+.blank.wrong { border-bottom-color: var(--bad); background: var(--bad-soft); }
+.bank { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 2px dashed var(--teal); background: var(--surface); border-radius: 999px; padding: 4px 14px; font-weight: 700; color: var(--head); }
+.chip.used { border-style: solid; border-color: var(--line); color: var(--muted); text-decoration: line-through; }
+.fb { border-radius: 12px; padding: 12px 16px; font-size: 17px; }
+.fb:empty { display: none; }
+.fb.ok { background: var(--good-soft); color: var(--ink); border-left: 5px solid var(--good); }
+.fb.no { background: var(--bad-soft); color: var(--ink); border-left: 5px solid var(--bad); }
+.fb.tip { background: var(--accent-soft); color: var(--ink); border-left: 5px solid var(--accent); }
+.power { width: 112px; height: 112px; border-radius: 50%; border: 6px solid var(--accent); background: var(--surface); display: grid; place-items: center; align-self: center; }
+.power svg { width: 52px; height: 52px; }
+.power:hover { background: var(--accent-soft); }
+/* Stage 2 */
+.purposes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 12px; }
+.purpose { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.purpose:hover { border-color: var(--teal); }
+.purpose .budget { font-family: var(--mono); font-size: 15px; color: var(--teal); font-weight: 700; }
+.purpose strong { font-family: var(--display); font-size: 21px; color: var(--head); }
+.purpose span.d { color: var(--muted); font-size: 16px; }
+.needs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.needs li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; }
+.mark { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+.mark.y { background: var(--good); color: var(--surface); }
+.mark.n { background: var(--bad-soft); color: var(--bad); border: 2px solid var(--bad); }
+.needs .t { font-weight: 700; }
+.needs .w { display: block; color: var(--muted); font-size: 16px; }
+fieldset.part { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px 16px; margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; background: var(--surface); }
+fieldset.part.prio { border: 2px solid var(--accent); }
+fieldset.part legend { padding: 0 6px; font-weight: 700; color: var(--head); font-size: 19px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.role { font-weight: 400; color: var(--muted); font-size: 16px; }
+.badge { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 2px 10px; }
+.badge.cool { background: var(--teal-soft); color: var(--head); }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr)); gap: 8px; }
+.opt { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.opt:hover { border-color: var(--teal); }
+.opt[aria-pressed="true"] { border-color: var(--teal); background: var(--surface-2); box-shadow: inset 0 0 0 2px var(--teal); }
+.opt b { color: var(--head); }
+.opt small { color: var(--muted); font-size: 14px; line-height: 1.3; }
+.opt .pr { font-family: var(--mono); font-size: 14px; color: var(--ink); }
+.why { font-size: 16px; color: var(--muted); }
+.meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; }
+.meter { display: flex; flex-direction: column; gap: 6px; }
+.meter .lab { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 700; }
+.meter .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.bar { height: 12px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--teal); border-radius: 6px; transition: width 0.3s; }
+.bar.over i { background: var(--bad); }
+.status { font-size: 15px; }
+.status.ok { color: var(--good); font-weight: 700; }
+.status.no { color: var(--bad); font-weight: 700; }
+.stars { font-size: 26px; letter-spacing: 2px; color: var(--accent); }
+.stars .off { color: var(--line); }
+/* Stage 3 */
+.periphs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 10px; }
+.pc { border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.pc.rec { border-color: var(--accent); }
+.pc.chosen { background: var(--surface-2); border-color: var(--teal); }
+.pc .top { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+.pc .nm { font-weight: 700; color: var(--head); }
+.pc .pr { font-family: var(--mono); font-size: 14px; white-space: nowrap; }
+.pc .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px; padding: 2px 9px; }
+.tag.rec { background: var(--accent); color: var(--accent-ink); }
+.tag.in { background: var(--teal); color: var(--surface); }
+.tag.out { background: var(--head); color: var(--surface); }
+.tag.both { background: var(--accent-soft); color: var(--ink); border: 1px solid var(--accent); }
+.classify { display: flex; flex-direction: column; gap: 6px; }
+.classify .row button { flex: 1; }
+.desk { display: flex; flex-wrap: wrap; gap: 8px; }
+.desk:empty::before { content: "Nothing on your desk yet. Pick a screen and something to type or click with."; color: var(--muted); font-size: 16px; }
+.desk span { display: inline-flex; gap: 6px; align-items: center; background: var(--surface-2); border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 15px; }
+/* Boot */
+.monitor { background: var(--head); border-radius: 18px; padding: 14px; }
+.post { background: var(--screen); color: var(--screen-ink); font-family: var(--mono); font-size: 15px; line-height: 1.6; border-radius: 8px; padding: 16px; min-height: 280px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+.post .hi { color: #F3C55A; }
+.summary dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+.summary dt { font-weight: 700; color: var(--head); }
+.summary dd { margin: 0; }
+ol.qs { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.small { font-size: 15px; color: var(--muted); }
+/* Rig */
+.r-case { fill: var(--case); stroke: var(--case-line); stroke-width: 4; }
+.r-mobo { fill: var(--mobo); stroke: var(--mobo-line); stroke-width: 3; }
+.r-trace { fill: none; stroke: var(--mobo-line); stroke-width: 3; }
+.r-part { fill: var(--part); stroke: var(--part-line); stroke-width: 3; }
+.r-det { fill: none; stroke: var(--part-line); stroke-width: 3; }
+.r-out { fill: none; stroke: var(--part-line); stroke-width: 4; stroke-dasharray: 14 8; }
+.r-tube { fill: none; stroke: var(--part-line); stroke-width: 8; stroke-linecap: round; }
+.new .r-part, .new .r-mobo { fill: var(--accent); stroke: var(--head); stroke-width: 4; }
+.new .r-det, .new .r-trace { stroke: var(--head); }
+.new .r-out { stroke: var(--accent); stroke-width: 6; }
+.new .r-tube { stroke: var(--accent); }
+.pg { animation: fitin 0.45s ease-out both; transform-box: fill-box; transform-origin: center; }
+.pg.off, #rig .off { display: none; }
+@keyframes fitin { from { opacity: 0; transform: translateY(-24px) scale(0.96); } to { opacity: 1; transform: none; } }
+.r-led { fill: var(--line); }
+.standby .r-led { fill: #F3A712; }
+.on .r-led { fill: #22D17B; }
+.r-glow { fill: var(--line); }
+.on .r-glow { fill: url(#rgb); animation: pulse 2.4s ease-in-out infinite; }
+.fan { transform-box: fill-box; transform-origin: center; }
+.on .fan { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) {
+  .pg, .on .fan, .on .r-glow { animation: none; }
+  .bar i { transition: none; }
+}
+.sites { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 12px; }
+.site { background: var(--surface); border: 2px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.site.rec { border-color: var(--accent); }
+.site p { font-size: 16px; color: var(--muted); }
+.site .look { color: var(--ink); }
+.site .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.site a.btn { align-self: flex-start; margin-top: auto; text-decoration: none; }
+.rcform { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 10px; }
+.fld { display: flex; flex-direction: column; gap: 4px; font-size: 15px; font-weight: 700; color: var(--head); }
+.fld input { font: inherit; font-weight: 400; font-size: 17px; padding: 8px 10px; border: 2px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); min-width: 0; }
+.tablewrap { overflow-x: auto; }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 16px; }
+table.cmp th, table.cmp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.cmp thead th { color: var(--head); background: var(--surface-2); }
+table.cmp tbody th { color: var(--head); width: 18%; }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; box-shadow: 0 6px 18px rgba(1, 52, 56, 0.08); }
+.topbar .prog { flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.topbar .plab { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 700; color: var(--head); }
+.topbar .plab .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.topbar .pbar { height: 14px; border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+.topbar .pbar i { display: block; height: 100%; border-radius: 7px; background: linear-gradient(90deg, var(--teal), var(--accent)); transition: width 0.5s ease; }
+.price { display: flex; align-items: baseline; gap: 10px; position: relative; }
+.price .pl { font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.price .pv { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--head); font-variant-numeric: tabular-nums; }
+.price .delta { position: absolute; right: 0; top: -6px; font-family: var(--mono); font-size: 15px; font-weight: 700; padding: 1px 8px; border-radius: 999px; animation: rise 1.6s ease-out forwards; pointer-events: none; }
+.price .delta.up { background: var(--accent); color: var(--accent-ink); }
+.price .delta.down { background: var(--good-soft); color: var(--good); }
+@keyframes rise { 0% { opacity: 0; transform: translateY(8px); } 15% { opacity: 1; transform: translateY(-14px); } 75% { opacity: 1; transform: translateY(-18px); } 100% { opacity: 0; transform: translateY(-26px); } }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+@media (prefers-reduced-motion: reduce) { .price .delta { animation: none; opacity: 0; } .topbar .pbar i { transition: none; } }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="titles">
+      <p class="eyebrow">Year 9 Computer Science · Hardware</p>
+      <h1>Build Your PC</h1>
+    </div>
+    <ol class="stepper" id="stepper" aria-label="Stages"></ol>
+  </header>
+
+  <div class="topbar" id="topbar">
+    <div class="prog">
+      <div class="plab"><span id="pstage">Stage 1 of 4 · Build it</span><span class="num" id="ppct">0%</span></div>
+      <div class="pbar" role="progressbar" aria-label="Overall progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="pbar"><i style="width:0%"></i></div>
+    </div>
+    <div class="price" aria-live="polite"><span class="pl">Estimated price</span><span class="pv" id="pv">£0</span></div>
+  </div>
+
+  <div class="grid">
+    <aside class="bench" aria-label="Your PC">
+      <svg id="rig" viewBox="0 0 720 600" role="img" aria-labelledby="rigLabel">
+        <title id="rigLabel">Your PC case, showing the parts fitted so far</title>
+        <defs>
+          <linearGradient id="rgb" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="#02C39A"/><stop offset="0.5" stop-color="#F3A712"/><stop offset="1" stop-color="#5BA8F5"/>
+          </linearGradient>
+        </defs>
+        <rect class="r-case" x="10" y="10" width="700" height="580" rx="24"/>
+        <rect class="r-glow" x="400" y="577" width="290" height="6" rx="3"/>
+        <circle class="r-led" cx="680" cy="40" r="9"/>
+        <g id="g-motherboard" class="pg off">
+          <rect class="r-mobo" x="50" y="50" width="460" height="400" rx="10"/>
+          <path class="r-trace" d="M70 80 H110 M70 240 H120 M440 290 V340 M470 290 V330 M70 345 H300"/>
+        </g>
+        <g id="g-psu" class="pg off">
+          <rect class="r-part" x="50" y="480" width="320" height="90" rx="8"/>
+          <g class="fan"><circle class="r-det" cx="130" cy="525" r="30"/><path class="r-det" d="M110 525 H150 M130 505 V545"/></g>
+        </g>
+        <g id="g-cpu" class="pg off">
+          <rect class="r-part" x="140" y="100" width="120" height="120" rx="8"/>
+          <rect class="r-det" x="170" y="130" width="60" height="60" rx="4"/>
+        </g>
+        <g id="g-cooling" class="pg off">
+          <g class="fan"><circle class="r-part" cx="610" cy="130" r="68"/><circle class="r-det" cx="610" cy="130" r="16"/><path class="r-det" d="M610 72 V114 M610 146 V188 M552 130 H594 M626 130 H668"/></g>
+          <g id="cool-0"><g class="fan"><circle class="r-part" cx="200" cy="160" r="46"/><path class="r-det" d="M200 122 V198 M162 160 H238"/></g></g>
+          <g id="cool-1"><rect class="r-out" x="120" y="80" width="160" height="160" rx="14"/><g class="fan"><circle class="r-part" cx="200" cy="160" r="40"/><path class="r-det" d="M200 126 V194 M166 160 H234"/></g></g>
+          <g id="cool-2"><rect class="r-part" x="120" y="18" width="360" height="26" rx="6"/><path class="r-tube" d="M180 46 V118 M220 46 V118"/><rect class="r-part" x="160" y="120" width="80" height="80" rx="14"/></g>
+        </g>
+        <g id="g-ram" class="pg off">
+          <rect id="ram-0" class="r-part" x="300" y="90" width="20" height="170" rx="4"/>
+          <rect id="ram-1" class="r-part" x="330" y="90" width="20" height="170" rx="4"/>
+          <rect id="ram-2" class="r-part" x="360" y="90" width="20" height="170" rx="4"/>
+          <rect id="ram-3" class="r-part" x="390" y="90" width="20" height="170" rx="4"/>
+        </g>
+        <g id="g-storage" class="pg off">
+          <g id="st-ssd"><rect class="r-part" x="110" y="280" width="230" height="40" rx="6"/><rect class="r-det" x="130" y="290" width="40" height="20" rx="3"/><rect class="r-det" x="185" y="290" width="40" height="20" rx="3"/></g>
+          <g id="st-hdd"><rect class="r-part" x="400" y="466" width="150" height="104" rx="8"/><circle class="r-det" cx="462" cy="518" r="36"/><circle class="r-det" cx="462" cy="518" r="6"/></g>
+        </g>
+        <g id="g-gpu" class="pg off">
+          <rect id="gpu-body" class="r-part" x="70" y="360" width="360" height="80" rx="10"/>
+          <g id="gf-0" class="fan"><circle class="r-det" cx="140" cy="400" r="26"/><path class="r-det" d="M124 400 H156 M140 384 V416"/></g>
+          <g id="gf-1" class="fan"><circle class="r-det" cx="250" cy="400" r="26"/><path class="r-det" d="M234 400 H266 M250 384 V416"/></g>
+          <g id="gf-2" class="fan"><circle class="r-det" cx="360" cy="400" r="26"/><path class="r-det" d="M344 400 H376 M360 384 V416"/></g>
+        </g>
+        <g id="g-io" class="pg off">
+          <rect class="r-part" x="560" y="240" width="120" height="220" rx="8"/>
+          <rect class="r-det" x="585" y="265" width="70" height="18" rx="3"/>
+          <rect class="r-det" x="585" y="300" width="70" height="18" rx="3"/>
+          <rect class="r-det" x="585" y="335" width="30" height="30" rx="4"/>
+          <rect class="r-det" x="625" y="335" width="30" height="30" rx="4"/>
+          <circle class="r-det" cx="600" cy="400" r="12"/>
+          <circle class="r-det" cx="640" cy="400" r="12"/>
+          <rect class="r-det" x="585" y="425" width="70" height="18" rx="3"/>
+        </g>
+      </svg>
+      <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>Just fitted or changed</span><span><i class="sw" style="background:var(--part)"></i>Fitted</span></div>
+      <dl class="spec" id="spec"></dl>
+    </aside>
+    <main class="panel" id="panel" aria-live="polite"></main>
+  </div>
+  <p class="small">Prices are rounded examples for this activity. Refreshing the page starts again from Stage 1.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var ORDER = ['motherboard', 'psu', 'cpu', 'cooling', 'ram', 'storage', 'gpu', 'io'];
+  var NAMES = { motherboard: 'Motherboard', psu: 'Power supply', cpu: 'CPU', cooling: 'Cooling', ram: 'RAM', storage: 'Storage', gpu: 'GPU', io: 'Input and output ports' };
+
+  // Stage 1: fill in the blanks. Each sentence fits one part.
+  var S1 = [
+    { part: 'motherboard', bits: ['Every other part plugs into the ', 0, ', the main circuit board that carries data and power between them.'],
+      ans: [['motherboard', 'mainboard', 'mobo']], kitchen: 'In the kitchen, this is the layout and corridors that connect every station.', letter: 'It starts with M and has 11 letters.',
+      fact: 'Motherboard fitted. Everything else will connect to it.' },
+    { part: 'psu', bits: ['The ', 0, ' takes electricity from the wall socket and turns it into safe, steady power for each part.'],
+      ans: [['power supply', 'psu', 'power supply unit', 'power unit']], kitchen: 'In the kitchen, this is the gas and electricity supply.', letter: 'Two words: P _ _ _ _  S _ _ _ _ _ (or the letters PSU).',
+      fact: 'Power supply fitted. The light on the case is now on standby.' },
+    { part: 'cpu', bits: ['The ', 0, ' follows instructions and does calculations, billions of times every second.'],
+      ans: [['cpu', 'processor', 'central processing unit', 'the cpu']], kitchen: 'In the kitchen, this is the head chef who carries out each step of the recipe.', letter: 'Three letters, starting with C.',
+      fact: 'CPU fitted. This is the head chef of your computer.' },
+    { part: 'cooling', bits: ['Fans and metal heatsinks provide ', 0, ', so the CPU does not overheat and slow down.'],
+      ans: [['cooling', 'cooling system', 'a cooling system', 'cooler']], kitchen: 'In the kitchen, this is the extractor fan.', letter: 'It starts with C and has 7 letters.',
+      fact: 'Cooling fitted. You will see the fans spin when the PC is switched on.' },
+    { part: 'ram', bits: [0, ' holds the programs and data you are using right now. It is volatile, so it is wiped when the power goes off.'],
+      ans: [['ram', 'memory', 'random access memory']], kitchen: 'In the kitchen, this is the worktop beside the chef.', letter: 'Three letters, starting with R.',
+      fact: 'RAM fitted. More RAM means more apps open at once.' },
+    { part: 'storage', bits: ['An SSD is a type of ', 0, '. It keeps your files and apps even when the power is off.'],
+      ans: [['storage', 'secondary storage']], kitchen: 'In the kitchen, this is the fridge and pantry.', letter: 'It starts with S and has 7 letters.',
+      fact: 'Storage fitted. Your files will still be here tomorrow.' },
+    { part: 'gpu', bits: ['The ', 0, ' draws images, games and video by working on millions of pixels at the same time.'],
+      ans: [['gpu', 'graphics card', 'graphics processing unit', 'video card']], kitchen: 'In the kitchen, this is a team of pastry chefs all decorating at once.', letter: 'Three letters, starting with G (or two words: graphics card).',
+      fact: 'GPU fitted. Your PC can now draw pictures fast.' },
+    { part: 'io', bits: ['Keyboards and mice are ', 0, ' devices. Monitors and speakers are ', 1, ' devices.'],
+      ans: [['input', 'inputs'], ['output', 'outputs']], kitchen: 'In the kitchen, order tickets come in and finished plates go out.', letter: 'First blank starts with I (5 letters). Second blank starts with O (6 letters).',
+      fact: 'Ports fitted. Every part is in place.' }
+  ];
+  var BANK = ['RAM', 'output', 'GPU', 'motherboard', 'cooling', 'input', 'CPU', 'storage', 'power supply'];
+  // Price of each part as fitted in Stage 1 (the starting build). Ports come with the motherboard.
+  var S1_PRICE = { motherboard: 120, psu: 45, cpu: 90, cooling: 0, ram: 25, storage: 45, gpu: 150, io: 0 };
+  var JOBS = { motherboard: 'connect every part', psu: 'give every part power', cpu: 'follow instructions and calculate', cooling: 'remove heat',
+    ram: 'hold what is in use right now', storage: 'keep files when the power is off', gpu: 'draw images', input: 'send data in', output: 'show or play the results' };
+
+  var T = {
+    cpu: { label: 'CPU', role: 'Head chef', opts: [
+      { n: 'Basic', s: '4 cores · 3.0 GHz', p: 90, w: 65 }, { n: 'Mid', s: '6 cores · 4.0 GHz', p: 180, w: 95 },
+      { n: 'High', s: '8 cores · 4.5 GHz', p: 320, w: 125 }, { n: 'Extreme', s: '16 cores · 5.0 GHz', p: 550, w: 170 }] },
+    ram: { label: 'RAM', role: 'Worktop', opts: [
+      { n: '8 GB', s: '1 stick', p: 25 }, { n: '16 GB', s: '2 sticks', p: 45 }, { n: '32 GB', s: '2 sticks', p: 90 }, { n: '64 GB', s: '4 sticks', p: 180 }] },
+    storage: { label: 'Storage', role: 'Fridge and pantry', opts: [
+      { n: '1 TB HDD', s: 'Spinning disk, slow', p: 40 }, { n: '512 GB SSD', s: 'Fast', p: 45 }, { n: '1 TB SSD', s: 'Fast', p: 70 }, { n: '2 TB SSD', s: 'Fast', p: 130 }] },
+    gpu: { label: 'GPU', role: 'Decorating team', opts: [
+      { n: 'Built-in', s: 'Shares the CPU chip. Fine for office work', p: 0, w: 0 }, { n: 'Entry', s: 'Light games and video', p: 150, w: 120 },
+      { n: 'Mid', s: 'Most games at high settings', p: 350, w: 220 }, { n: 'High', s: 'Top games, AI and 3D', p: 700, w: 350 }] },
+    cooling: { label: 'Cooling', role: 'Extractor fan', opts: [
+      { n: 'Stock fan', s: 'For Basic or Mid CPUs', p: 0, max: 1 }, { n: 'Tower cooler', s: 'For CPUs up to High', p: 40, max: 2 }, { n: 'Liquid cooler', s: 'For any CPU', p: 110, max: 3 }] },
+    psu: { label: 'Power supply', role: 'Gas and electricity', opts: [
+      { n: '450 W', s: 'Watts of power', p: 45, w: 450 }, { n: '650 W', s: 'Watts of power', p: 70, w: 650 }, { n: '850 W', s: 'Watts of power', p: 110, w: 850 }] }
+  };
+  var TIER_KEYS = ['cpu', 'cooling', 'ram', 'storage', 'gpu', 'psu'];
+  var BASE = { p: 120, w: 75 };
+  var DEFAULT_TIERS = { cpu: 0, ram: 0, storage: 1, gpu: 1, cooling: 0, psu: 0 };
+
+  var PURPOSES = [
+    { id: 'gamer', name: 'Esports gamer', budget: 1500, d: 'Plays fast online games and streams with friends.',
+      reqs: [
+        { k: 'gpu', min: 2, why: 'Games redraw millions of pixels many times a second. That is the GPU’s job (the decorating team).' },
+        { k: 'cpu', min: 1, why: 'Game rules, physics and enemies are worked out by the CPU (the head chef).' },
+        { k: 'ram', min: 1, why: '16 GB keeps the game and voice chat open together on the worktop.' },
+        { k: 'storage', min: 1, why: 'An SSD loads levels much faster than a spinning hard disk.' }],
+      rec: ['gkb', 'gmouse', 'fastmon', 'headset'] },
+    { id: 'video', name: 'Video creator', budget: 1800, d: 'Films and edits 4K video for an online channel.',
+      reqs: [
+        { k: 'cpu', min: 2, why: 'Exporting video is heavy work for the head chef. More cores finish sooner.' },
+        { k: 'ram', min: 2, why: '4K video needs a big worktop: 32 GB or more.' },
+        { k: 'storage', min: 2, why: 'Video files are huge. Choose at least a 1 TB SSD.' },
+        { k: 'gpu', min: 1, why: 'A graphics card speeds up previews and effects.' }],
+      rec: ['kmon', 'kb', 'mouse', 'headset'] },
+    { id: 'business', name: 'Small business owner', budget: 900, d: 'Runs an online shop: email, spreadsheets, orders and video calls.',
+      reqs: [
+        { k: 'storage', min: 1, why: 'An SSD makes every app open quickly.' },
+        { k: 'ram', min: 1, why: 'Email, spreadsheets, a video call and lots of tabs need 16 GB.' },
+        { k: 'gpu', max: 0, why: 'Office work does not need a graphics card. Spend that money where it helps.' }],
+      rec: ['mon', 'kb', 'mouse', 'cam', 'printer'] },
+    { id: 'ai', name: 'AI researcher', budget: 2200, d: 'Trains AI models on very large sets of data.',
+      reqs: [
+        { k: 'gpu', min: 3, why: 'Training AI is millions of small sums at once, which is what a GPU’s many cores are built for.' },
+        { k: 'ram', min: 3, why: 'Huge datasets need a huge worktop: 64 GB.' },
+        { k: 'cpu', min: 2, why: 'The CPU prepares the data and keeps the GPU busy.' },
+        { k: 'storage', min: 3, why: 'Training data takes a lot of space: 2 TB SSD.' }],
+      rec: ['mon', 'kb', 'mouse'] },
+    { id: 'flight', name: 'Cadet flight simulator', budget: 1800, d: 'A CCF training rig for practising flying over realistic scenery.',
+      reqs: [
+        { k: 'gpu', min: 2, why: 'Detailed scenery at speed needs a strong GPU.' },
+        { k: 'cpu', min: 2, why: 'Flight physics and weather are calculated by the CPU.' },
+        { k: 'ram', min: 2, why: 'Large maps of real terrain need 32 GB.' },
+        { k: 'storage', min: 2, why: 'Scenery files are large: at least a 1 TB SSD.' }],
+      rec: ['stick', 'vr', 'headset', 'kb'] },
+    { id: 'homework', name: 'Homework PC', budget: 700, d: 'For essays, research, Office 365 and online lessons at home.',
+      reqs: [
+        { k: 'storage', min: 1, why: 'An SSD means less waiting when you open your work.' },
+        { k: 'cpu', max: 1, why: 'A Basic or Mid CPU is plenty for homework. Save the money.' },
+        { k: 'gpu', max: 0, why: 'Homework does not need a graphics card.' }],
+      rec: ['mon', 'kb', 'mouse', 'printer'] }
+  ];
+
+  var PERIPHS = [
+    { id: 'kb', n: 'Keyboard', p: 25, t: 'in', why: 'You type on it to send letters and commands into the computer.' },
+    { id: 'gkb', n: 'Mechanical gaming keyboard', p: 80, t: 'in', why: 'It is still a keyboard: key presses go in. The lights are decoration.' },
+    { id: 'mouse', n: 'Mouse', p: 15, t: 'in', why: 'Moves the pointer and clicks. That is data going in.' },
+    { id: 'gmouse', n: 'Gaming mouse', p: 45, t: 'in', why: 'A faster, more precise mouse. Movements and clicks go in.' },
+    { id: 'mon', n: '24-inch monitor', p: 120, t: 'out', screen: 1, why: 'It shows the results on a screen.' },
+    { id: 'fastmon', n: '27-inch fast gaming monitor', p: 250, t: 'out', screen: 1, why: 'It shows 165 pictures a second, so fast games look smooth. Pictures come out.' },
+    { id: 'kmon', n: '4K colour-accurate monitor', p: 350, t: 'out', screen: 1, why: 'It shows true colours in fine detail, so editors can trust what they see.' },
+    { id: 'touch', n: 'Touchscreen monitor', p: 220, t: 'both', screen: 1, why: 'It shows pictures (output) and senses your finger (input).' },
+    { id: 'spk', n: 'Speakers', p: 40, t: 'out', why: 'They play sound out loud.' },
+    { id: 'headset', n: 'Headset with microphone', p: 60, t: 'both', why: 'The headphones play sound out; the microphone sends your voice in.' },
+    { id: 'cam', n: 'Webcam', p: 40, t: 'in', why: 'It captures video of you and sends it in.' },
+    { id: 'mic', n: 'Studio microphone', p: 70, t: 'in', why: 'It records your voice and sends it in.' },
+    { id: 'printer', n: 'Printer', p: 90, t: 'out', why: 'It puts the results onto paper.' },
+    { id: 'tablet', n: 'Drawing tablet', p: 120, t: 'in', why: 'Your pen strokes go in. It has no screen of its own.' },
+    { id: 'stick', n: 'Flight joystick', p: 90, t: 'in', why: 'Your hand movements go in to steer the aircraft.' },
+    { id: 'pad', n: 'Game controller', p: 50, t: 'both', why: 'Button presses go in; vibration comes back out to your hands.' },
+    { id: 'vr', n: 'VR headset', p: 400, t: 'both', screen: 1, why: 'Its screens show the world (output) and its sensors track your head (input).' }
+  ];
+  var TYPE_WORD = { 'in': 'Input', out: 'Output', both: 'Both' };
+  var STAGE_NAMES = ['Build it', 'Choose the insides', 'Add peripherals', 'Boot up', 'Real computers'];
+
+  // Stage 5: real websites to look at specifications (look only, no buying).
+  var SITES = [
+    { id: 'pcpp', n: 'PCPartPicker build guides', url: 'https://uk.pcpartpicker.com/guide/', kind: 'Build your own',
+      d: 'Real part lists from budget to high end. It checks the parts fit together, adds up the price and estimates the watts needed.', look: 'Find a build near your budget. Which GPU and CPU did they choose?' },
+    { id: 'pcs', n: 'PCSpecialist', url: 'https://www.pcspecialist.co.uk/', kind: 'Custom-built PCs',
+      d: 'Pick a case, then choose the CPU, RAM, storage and graphics card, like Stage 2. Watch the price change as you go.', look: 'Configure a PC for your client. How close is the price to yours?' },
+    { id: 'scan', n: 'Scan 3XS', url: 'https://www.scan.co.uk/3xs', kind: 'Gaming PCs and workstations',
+      d: 'Ready-built gaming PCs and powerful workstations for video, 3D and AI work.', look: 'Compare a gaming PC with a workstation. Which parts are different?' },
+    { id: 'apple', n: 'Apple Mac comparison', url: 'https://www.apple.com/uk/mac/compare/', kind: 'Mac',
+      d: 'Compare Macs side by side: chip, memory and storage. On a Mac, the CPU and GPU are built into one chip.', look: 'How much memory and storage does the cheapest Mac have? And the most expensive?' },
+    { id: 'currys', n: 'Currys desktop PCs', url: 'https://www.currys.co.uk/computing/desktop-pcs', kind: 'High-street shop',
+      d: 'Everyday desktop PCs, gaming PCs and all-in-ones. Use the filters for RAM and storage.', look: 'Find a PC under your client’s budget. Does it have an SSD or an HDD?' },
+    { id: 'rpi', n: 'Raspberry Pi 5', url: 'https://www.raspberrypi.com/products/raspberry-pi-5/', kind: 'Tiny computer',
+      d: 'A credit-card-sized computer used in schools, robotics and home projects.', look: 'How much RAM can it have? What is missing compared with your PC?' }
+  ];
+  var SITE_FOR = { gamer: ['pcpp', 'pcs'], video: ['apple', 'scan'], business: ['currys', 'apple'], ai: ['scan', 'pcs'], flight: ['pcpp', 'scan'], homework: ['currys', 'rpi'] };
+  var RC_FIELDS = [['name', 'Computer name'], ['site', 'Website'], ['price', 'Price (£)'], ['cpu', 'CPU'], ['ram', 'RAM'], ['storage', 'Storage'], ['gpu', 'GPU or graphics']];
+
+  function fresh() {
+    return { stage: 1, s1: { i: 0, help: [0, 0, 0, 0, 0, 0, 0, 0], wrong: 0, powered: false },
+      purpose: null, tiers: clone(DEFAULT_TIERS), s2done: false, periph: [], pwrong: 0, finished: false };
+  }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  var S = fresh();
+  function save() {}
+
+  var ui = { msg: null, pending: null, pfb: null, flash: null, lastBlank: null, confirmGo: false };
+  var panel = document.getElementById('panel');
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function money(n) { return '£' + n.toLocaleString('en-GB'); }
+  function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+  function purpose() { for (var i = 0; i < PURPOSES.length; i++) if (PURPOSES[i].id === S.purpose) return PURPOSES[i]; return null; }
+  function opt(k) { return T[k].opts[S.tiers[k]]; }
+  function towerCost() { var t = BASE.p; TIER_KEYS.forEach(function (k) { t += opt(k).p; }); return t; }
+  function periphCost() { var t = 0; S.periph.forEach(function (c) { var d = pById(c.id); if (d) t += d.p; }); return t; }
+  function pById(id) { for (var i = 0; i < PERIPHS.length; i++) if (PERIPHS[i].id === id) return PERIPHS[i]; return null; }
+  function powerNeed() { return BASE.w + opt('cpu').w + opt('gpu').w; }
+  function powerOk() { return opt('psu').w >= powerNeed() + 100; }
+  function coolOk() { return S.tiers.cpu <= opt('cooling').max; }
+  function reqMet(r) { var v = S.tiers[r.k]; return r.min != null ? v >= r.min : v <= r.max; }
+  function reqLabel(r) {
+    if (r.min != null) return T[r.k].label + ': ' + T[r.k].opts[r.min].n + (r.min < T[r.k].opts.length - 1 ? ' or better' : '');
+    if (r.k === 'gpu') return 'GPU: Built-in is enough';
+    return T[r.k].label + ': ' + T[r.k].opts[r.max].n + ' or below';
+  }
+  function towerStars() {
+    var pu = purpose(); if (!pu) return 0;
+    var met = pu.reqs.filter(reqMet).length;
+    var s = 1 + Math.round(4 * met / pu.reqs.length);
+    if (!coolOk()) s -= 1;
+    return Math.max(1, Math.min(5, s));
+  }
+  function starHtml(n) { var h = ''; for (var i = 0; i < 5; i++) h += i < n ? '★' : '<span class="off">★</span>'; return '<span class="stars" aria-label="' + n + ' out of 5 stars">' + h + '</span>'; }
+
+  // ---------- rig ----------
+  function setShown(id, show) { var g = document.getElementById(id); if (g) g.classList.toggle('off', !show); }
+  function renderRig() {
+    var rig = document.getElementById('rig');
+    var fitted = S.stage === 1 && !S.s1.powered ? S.s1.i : 8;
+    ORDER.forEach(function (k, idx) {
+      var g = document.getElementById('g-' + k);
+      g.classList.toggle('off', idx >= fitted);
+      g.classList.toggle('new', ui.flash === k);
+    });
+    // variants
+    for (var c = 0; c < 3; c++) setShown('cool-' + c, S.tiers.cooling === c);
+    var sticks = [1, 2, 2, 4][S.tiers.ram];
+    for (var r = 0; r < 4; r++) document.getElementById('ram-' + r).style.display = r < sticks ? '' : 'none';
+    setShown('st-ssd', S.tiers.storage > 0); setShown('st-hdd', S.tiers.storage === 0);
+    var gt = S.tiers.gpu;
+    document.getElementById('g-gpu').style.display = gt === 0 ? 'none' : '';
+    document.getElementById('gpu-body').setAttribute('width', [0, 150, 260, 370][gt] + 30);
+    for (var f = 0; f < 3; f++) document.getElementById('gf-' + f).style.display = f < gt ? '' : 'none';
+    rig.classList.toggle('standby', fitted >= 2 && !S.s1.powered);
+    rig.classList.toggle('on', S.s1.powered);
+  }
+  function flash(k) {
+    ui.flash = k; renderRig();
+    clearTimeout(flash.t);
+    flash.t = setTimeout(function () { ui.flash = null; renderRig(); }, 1600);
+  }
+  function renderSpec() {
+    var dl = document.getElementById('spec');
+    if (S.stage === 1 && !S.s1.powered) {
+      var h = '';
+      for (var i = 0; i < S.s1.i; i++) { var pk = ORDER[i]; h += '<dt>' + NAMES[pk] + '</dt><dd>Fitted</dd><dd class="pr">' + (S1_PRICE[pk] ? money(S1_PRICE[pk]) : 'Included') + '</dd>'; }
+      if (h) h += '<dt>Total so far</dt><dd></dd><dd class="pr"><b>' + money(currentPrice()) + '</b></dd>';
+      dl.innerHTML = h || '<dt>Parts fitted</dt><dd>None yet</dd><dd class="pr">0 / 8</dd>';
+      return;
+    }
+    var rows = '<dt>Case and motherboard</dt><dd></dd><dd class="pr">' + money(BASE.p) + '</dd>';
+    TIER_KEYS.forEach(function (k) { var o = opt(k); rows += '<dt>' + T[k].label + '</dt><dd>' + esc(o.n) + '</dd><dd class="pr">' + money(o.p) + '</dd>'; });
+    if (S.periph.length) rows += '<dt>Peripherals</dt><dd>' + S.periph.length + ' item' + (S.periph.length > 1 ? 's' : '') + '</dd><dd class="pr">' + money(periphCost()) + '</dd>';
+    rows += '<dt>Total</dt><dd></dd><dd class="pr"><b>' + money(towerCost() + periphCost()) + '</b></dd>';
+    dl.innerHTML = rows;
+  }
+
+  // ---------- stepper ----------
+  function canGo(n) {
+    if (n === 1) return true;
+    if (n === 2) return S.s1.powered;
+    if (n === 3) return S.s2done;
+    if (n === 4 || n === 5) return S.finished;
+    return false;
+  }
+  function renderStepper() {
+    var names = STAGE_NAMES;
+    var done = [S.s1.powered, S.s2done, S.finished, S.finished, false];
+    document.getElementById('stepper').innerHTML = names.map(function (nm, i) {
+      var n = i + 1;
+      return '<li><button data-a="goto" data-n="' + n + '"' + (S.stage === n ? ' aria-current="step"' : '') + (done[i] ? ' class="done"' : '') + (canGo(n) ? '' : ' disabled') + '><span class="n">' + (done[i] ? '✓' : n) + '</span>' + nm + '</button></li>';
+    }).join('');
+  }
+
+  // ---------- stage 1 ----------
+  function renderS1() {
+    var dots = ''; for (var d = 0; d < 8; d++) dots += '<i class="' + (d < S.s1.i ? 'on' : d === S.s1.i ? 'cur' : '') + '"></i>';
+    var head = '<div class="card"><p class="eyebrow">Stage 1 · Build it</p><h2>Fill in the blanks to fit each part</h2><p class="lede">Each correct answer fits a part into your PC. Use the word bank or a hint if you get stuck.</p><div class="dots" aria-hidden="true">' + dots + '</div></div>';
+    if (S.s1.i >= 8) {
+      if (!S.s1.powered) {
+        return head + '<div class="card tint"><h3>All eight parts are fitted</h3><p>Your PC has a motherboard, power, a CPU, cooling, RAM, storage, a GPU and ports. Press the power button to switch it on.</p>' +
+          fbHtml() + '<button class="power" data-a="power" aria-label="Press the power button"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6 V22" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M14 12 A15 15 0 1 0 34 12" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/></svg></button></div>';
+      }
+      var helps = S.s1.help.reduce(function (a, b) { return a + b; }, 0);
+      return head + '<div class="card tint"><h3>It’s alive</h3><p>The power light is green, the fans are spinning and electricity is reaching every part. You fitted 8 parts with ' + helps + ' hint' + (helps === 1 ? '' : 's') + ' and ' + S.s1.wrong + ' wrong attempt' + (S.s1.wrong === 1 ? '' : 's') + '.</p><p>Right now it is a general PC. Next, you will choose who it is for and change the parts to suit that job.</p><div class="row"><button class="btn go big" data-a="goto" data-n="2">Choose the insides →</button></div></div>';
+    }
+    var q = S1[S.s1.i];
+    var sent = q.bits.map(function (b) {
+      if (typeof b === 'number') return '<label class="sr" for="blank' + b + '">Blank ' + (b + 1) + '</label><input class="blank" id="blank' + b + '" data-b="' + b + '" autocomplete="off" autocapitalize="off" spellcheck="false">';
+      return esc(b);
+    }).join('');
+    var lvl = S.s1.help[S.s1.i];
+    var hints = '';
+    if (lvl >= 1) hints += '<p class="fb tip"><b>Kitchen clue:</b> ' + esc(q.kitchen) + '</p>';
+    if (lvl >= 2) hints += '<p class="fb tip"><b>Letter clue:</b> ' + esc(q.letter) + '</p>';
+    var hintBtn = lvl === 0 ? 'Hint: kitchen clue' : lvl === 1 ? 'Hint: letter clue' : lvl === 2 ? 'Show the answer' : '';
+    var used = {};
+    for (var i = 0; i < S.s1.i; i++) S1[i].ans.forEach(function (a) { used[a[0]] = 1; });
+    var bank = BANK.map(function (w) { var u = used[norm(w)]; return '<button class="chip' + (u ? ' used' : '') + '" data-a="chip" data-w="' + esc(w) + '"' + (u ? ' aria-label="' + esc(w) + ', already used"' : '') + '>' + esc(w) + '</button>'; }).join('');
+    return head +
+      '<div class="card"><p class="eyebrow">Part ' + (S.s1.i + 1) + ' of 8</p><p class="sentence">' + sent + '</p>' +
+      '<div class="row"><button class="btn primary" data-a="check">Check</button>' + (hintBtn ? '<button class="btn" data-a="hint">' + hintBtn + '</button>' : '') + '</div>' +
+      hints + fbHtml() + '</div>' +
+      '<div class="card tint"><h3>Word bank</h3><p class="small">Click a word to drop it into the blank.</p><div class="bank">' + bank + '</div></div>';
+  }
+  function fbHtml() { return ui.msg ? '<p class="fb ' + ui.msg.c + '">' + ui.msg.h + '</p>' : ''; }
+  function whichPart(v) {
+    for (var i = 0; i < S1.length; i++) for (var j = 0; j < S1[i].ans.length; j++) if (S1[i].ans[j].indexOf(v) >= 0) {
+      return S1[i].part === 'io' ? (j === 0 ? 'input' : 'output') : S1[i].part;
+    }
+    return null;
+  }
+  function checkS1() {
+    var q = S1[S.s1.i];
+    var inputs = panel.querySelectorAll('.blank');
+    var allOk = true, firstBad = null;
+    inputs.forEach(function (inp) {
+      var b = +inp.getAttribute('data-b'); var v = norm(inp.value);
+      var ok = q.ans[b].indexOf(v) >= 0;
+      inp.classList.toggle('wrong', !ok);
+      if (!ok) { allOk = false; if (!firstBad) firstBad = { v: v, inp: inp, b: b }; }
+    });
+    if (allOk) {
+      var part = q.part;
+      ui.msg = { c: 'ok', h: '<b>Correct.</b> ' + esc(q.fact) };
+      S.s1.i++; save(); render(); flash(part);
+      var nb = panel.querySelector('.blank'); if (nb) nb.focus();
+      return;
+    }
+    S.s1.wrong++; save();
+    var v = firstBad.v, other = v ? whichPart(v) : null, msg;
+    if (!v) msg = 'Type a word in the blank, or click one in the word bank.';
+    else if (other) msg = '<b>' + esc(firstBad.inp.value.trim()) + '</b> is a real part, but its job is to ' + JOBS[other] + '. Read the sentence again.';
+    else msg = 'Not quite. Check your spelling, or use a hint.';
+    ui.msg = { c: 'no', h: msg };
+    var fbEl = panel.querySelector('.fb.no, .fb.ok');
+    render();
+    var again = panel.querySelector('#blank' + firstBad.b);
+    if (again) { again.value = firstBad.inp.value; again.classList.add('wrong'); again.focus(); }
+    inputs.forEach(function (inp) { var n = panel.querySelector('#' + inp.id); if (n && n !== again) n.value = inp.value; });
+  }
+  function hintS1() {
+    var q = S1[S.s1.i];
+    var keep = [].map.call(panel.querySelectorAll('.blank'), function (i) { return i.value; });
+    S.s1.help[S.s1.i] = Math.min(3, S.s1.help[S.s1.i] + 1); save();
+    ui.msg = null;
+    render();
+    var inputs = panel.querySelectorAll('.blank');
+    inputs.forEach(function (inp, i) { inp.value = S.s1.help[S.s1.i] >= 3 ? q.ans[i][0] : (keep[i] || ''); });
+    if (S.s1.help[S.s1.i] >= 3) ui.msg = null, panel.querySelector('[data-a="check"]').focus();
+  }
+
+  // ---------- stage 2 ----------
+  function renderS2() {
+    var pu = purpose();
+    if (!pu) {
+      return '<div class="card"><p class="eyebrow">Stage 2 · Choose the insides</p><h2>Who is this PC for?</h2><p class="lede">Pick a client. Each one needs different parts and has a different budget for the whole set-up, including peripherals.</p></div>' +
+        '<div class="purposes">' + PURPOSES.map(function (p) {
+          return '<button class="purpose" data-a="purpose" data-id="' + p.id + '"><span class="budget">Budget ' + money(p.budget) + '</span><strong>' + esc(p.name) + '</strong><span class="d">' + esc(p.d) + '</span></button>';
+        }).join('') + '</div>';
+    }
+    var needs = pu.reqs.map(function (r) {
+      var ok = reqMet(r);
+      return '<li><span class="mark ' + (ok ? 'y' : 'n') + '" aria-hidden="true">' + (ok ? '✓' : '!') + '</span><span><span class="t">' + esc(reqLabel(r)) + '</span> <span class="sr">' + (ok ? 'met' : 'not met yet') + '</span><span class="w">' + esc(r.why) + '</span></span></li>';
+    }).join('');
+    var prio = {}; pu.reqs.forEach(function (r) { prio[r.k] = r; });
+    var parts = TIER_KEYS.map(function (k) {
+      var r = prio[k];
+      var badge = r ? '<span class="badge">' + (r.min != null ? 'Matters for this job' : 'Save money here') + '</span>' : '';
+      if (k === 'cooling' && !coolOk()) badge = '<span class="badge">Too weak for this CPU</span>';
+      if (k === 'psu' && !powerOk()) badge = '<span class="badge">Not enough power</span>';
+      var opts = T[k].opts.map(function (o, i) {
+        return '<button class="opt" data-a="tier" data-k="' + k + '" data-i="' + i + '" aria-pressed="' + (S.tiers[k] === i) + '"><b>' + esc(o.n) + '</b><small>' + esc(o.s) + '</small><span class="pr">' + (o.p ? money(o.p) : 'Included') + '</span></button>';
+      }).join('');
+      return '<fieldset class="part' + (r || (k === 'cooling' && !coolOk()) || (k === 'psu' && !powerOk()) ? ' prio' : '') + '"><legend>' + T[k].label + ' <span class="role">· ' + T[k].role + '</span> ' + badge + '</legend><div class="opts">' + opts + '</div>' + (r ? '<p class="why">' + esc(r.why) + '</p>' : '') + '</fieldset>';
+    }).join('');
+    var spent = towerCost(), left = pu.budget - spent;
+    var need = powerNeed();
+    var meters = '<div class="meters">' +
+      meter('Tower cost', money(spent) + ' of ' + money(pu.budget), spent / pu.budget, spent > pu.budget,
+        spent > pu.budget ? 'Over budget by ' + money(-left) + '. Choose cheaper parts.' : left < 150 ? 'Only ' + money(left) + ' left for peripherals. Leave at least £150.' : money(left) + ' left for peripherals.', spent <= pu.budget && left >= 150) +
+      meter('Power', need + ' W used + 100 W spare', (need + 100) / opt('psu').w, !powerOk(),
+        powerOk() ? 'Your ' + opt('psu').n + ' power supply is enough.' : 'Needs at least ' + (need + 100) + ' W. Choose a bigger power supply.', powerOk()) +
+      meter('Cooling', coolOk() ? 'Keeps up' : 'Overheating', S.tiers.cpu / Math.max(1, opt('cooling').max), !coolOk(),
+        coolOk() ? 'Your ' + opt('cooling').n.toLowerCase() + ' can cool a ' + opt('cpu').n + ' CPU.' : 'A ' + opt('cpu').n + ' CPU needs a stronger cooler, or it will slow itself down.', coolOk()) +
+      '</div>';
+    var canNext = powerOk() && spent <= pu.budget;
+    var unmet = pu.reqs.filter(function (r) { return !reqMet(r); }).length;
+    var go = '';
+    if (!canNext) go = '<p class="status no">' + (!powerOk() ? 'Your PC will not switch on: the power supply is too small.' : 'You are over budget.') + '</p>';
+    else if (ui.confirmGo && (unmet || !coolOk())) go = '<p class="fb tip">Your PC still misses ' + (unmet ? unmet + ' of the client’s needs' : '') + (unmet && !coolOk() ? ' and ' : '') + (!coolOk() ? 'its cooling is too weak' : '') + '. You can carry on, but you will get fewer stars.</p><div class="row"><button class="btn go" data-a="s2next" data-force="1">Carry on anyway →</button><button class="btn" data-a="stay">Keep improving</button></div>';
+    return '<div class="card"><p class="eyebrow">Stage 2 · Choose the insides</p><div class="row" style="justify-content:space-between"><h2>' + esc(pu.name) + '</h2><button class="linkish" data-a="purpose-reset">Change client</button></div><p class="lede">' + esc(pu.d) + ' Budget for everything: <b>' + money(pu.budget) + '</b>.</p>' +
+      '<div class="row">' + starHtml(towerStars()) + '<span class="small">How well the insides suit this client</span></div></div>' +
+      '<div class="card tint"><h3>What this client needs</h3><ul class="needs">' + needs + '</ul></div>' +
+      parts +
+      '<div class="card">' + meters + go + (ui.confirmGo && canNext && (unmet || !coolOk()) ? '' : '<div class="row"><button class="btn go big" data-a="s2next"' + (canNext ? '' : ' disabled') + '>Add peripherals →</button></div>') + '</div>';
+  }
+  function meter(lab, num, frac, over, note, ok) {
+    return '<div class="meter"><div class="lab"><span>' + lab + '</span><span class="num">' + esc(num) + '</span></div><div class="bar' + (over ? ' over' : '') + '"><i style="width:' + Math.round(Math.min(1, Math.max(0.02, frac)) * 100) + '%"></i></div><p class="status ' + (ok ? 'ok' : 'no') + '">' + esc(note) + '</p></div>';
+  }
+
+  // ---------- stage 3 ----------
+  function hasScreen() { return S.periph.some(function (c) { var d = pById(c.id); return d && d.screen; }); }
+  function hasInput() { return S.periph.some(function (c) { var d = pById(c.id); return d && (d.t === 'in' || d.t === 'both'); }); }
+  function chosen(id) { return S.periph.some(function (c) { return c.id === id; }); }
+  function renderS3() {
+    var pu = purpose();
+    var total = towerCost() + periphCost();
+    var over = total > pu.budget;
+    var recHit = pu.rec.filter(chosen).length;
+    var desk = S.periph.map(function (c) { var d = pById(c.id); return '<span>' + esc(d.n) + ' <i class="tag ' + d.t + '">' + TYPE_WORD[d.t] + '</i></span>'; }).join('');
+    var cards = PERIPHS.map(function (d) {
+      var isRec = pu.rec.indexOf(d.id) >= 0, isChosen = chosen(d.id), isPending = ui.pending === d.id;
+      var body = '';
+      if (isChosen) body = '<div class="tags"><i class="tag ' + d.t + '">' + TYPE_WORD[d.t] + '</i></div><p class="small">' + esc(d.why) + '</p><button class="btn" data-a="premove" data-id="' + d.id + '">Remove</button>';
+      else if (isPending) body = '<div class="classify"><p><b>Is it input, output or both?</b></p><div class="row">' +
+        ['in', 'out', 'both'].map(function (t) { return '<button class="btn" data-a="classify" data-id="' + d.id + '" data-t="' + t + '">' + TYPE_WORD[t] + '</button>'; }).join('') +
+        '</div>' + (ui.pfb ? '<p class="fb no">' + ui.pfb + '</p>' : '') + '<button class="linkish" data-a="pcancel">Cancel</button></div>';
+      else body = '<button class="btn" data-a="padd" data-id="' + d.id + '">Add to desk</button>';
+      return '<div class="pc' + (isRec ? ' rec' : '') + (isChosen ? ' chosen' : '') + '"><div class="top"><span class="nm">' + esc(d.n) + '</span><span class="pr">' + money(d.p) + '</span></div>' + (isRec && !isChosen ? '<div class="tags"><i class="tag rec">Recommended</i></div>' : '') + body + '</div>';
+    }).join('');
+    var ready = hasScreen() && hasInput() && !over;
+    return '<div class="card"><p class="eyebrow">Stage 3 · Add peripherals</p><h2>Kit out the desk</h2><p class="lede">Add the devices your ' + esc(pu.name.toLowerCase()) + ' needs. For each one, say whether it is an <b>input</b>, an <b>output</b> or <b>both</b>.</p></div>' +
+      '<div class="card tint"><h3>Your desk</h3><div class="desk">' + desk + '</div>' +
+      '<ul class="needs">' +
+      li(hasScreen(), 'A screen to see the output') + li(hasInput(), 'An input device to control it') +
+      li(recHit === pu.rec.length, 'Recommended for this client: ' + recHit + ' of ' + pu.rec.length + ' added') + '</ul>' +
+      meter('Total cost', money(total) + ' of ' + money(pu.budget), total / pu.budget, over, over ? 'Over budget by ' + money(total - pu.budget) + '. Remove something, or go back and choose cheaper insides.' : money(pu.budget - total) + ' left.', !over) +
+      '<div class="row"><button class="btn go big" data-a="finish"' + (ready ? '' : ' disabled') + '>Boot it up →</button></div></div>' +
+      '<div class="periphs">' + cards + '</div>';
+  }
+  function li(ok, text) { return '<li><span class="mark ' + (ok ? 'y' : 'n') + '" aria-hidden="true">' + (ok ? '✓' : '!') + '</span><span class="t">' + esc(text) + '<span class="sr">' + (ok ? ', done' : ', not yet') + '</span></span></li>'; }
+
+  // ---------- stage 4 ----------
+  function postLines() {
+    var pu = purpose();
+    var ins = [], outs = [];
+    S.periph.forEach(function (c) { var d = pById(c.id); if (d.t !== 'out') ins.push(d.n); if (d.t !== 'in') outs.push(d.n); });
+    var ok = function (b) { return b ? 'OK' : '<span class="hi">WARNING</span>'; };
+    return [
+      '<span class="hi">Y9 CS BIOS v1.0</span>  Build for: ' + esc(pu.name),
+      '',
+      'Power ........ ' + opt('psu').n + ' (needs ' + (powerNeed() + 100) + ' W) ... ' + ok(powerOk()),
+      'CPU .......... ' + opt('cpu').n + ', ' + opt('cpu').s + ' ... OK',
+      'Cooling ...... ' + opt('cooling').n + ' ... ' + ok(coolOk()),
+      'Memory ....... ' + opt('ram').n + ' RAM ... OK',
+      'Storage ...... ' + opt('storage').n + ' ... OK',
+      'Graphics ..... ' + opt('gpu').n + ' GPU ... OK',
+      'Input ........ ' + esc(ins.join(', ')),
+      'Output ....... ' + esc(outs.join(', ')),
+      '',
+      'Loading operating system from storage into RAM...',
+      '<span class="hi">Welcome. Your PC is ready.</span>'
+    ];
+  }
+  function renderS4() {
+    var pu = purpose();
+    var total = towerCost() + periphCost();
+    var stars = towerStars();
+    var recHit = pu.rec.filter(chosen).length;
+    var helps = S.s1.help.reduce(function (a, b) { return a + b; }, 0);
+    var unmet = pu.reqs.filter(function (r) { return !reqMet(r); });
+    var biggest = TIER_KEYS.slice().sort(function (a, b) { return opt(b).p - opt(a).p; })[0];
+    return '<div class="card"><p class="eyebrow">Boot up</p><h2>Switching on</h2><div class="monitor"><div class="post" id="post" role="log" aria-label="Start-up screen"></div></div></div>' +
+      '<div class="card summary"><h3>Your build for the ' + esc(pu.name.toLowerCase()) + '</h3><div class="row">' + starHtml(stars) + '</div><dl>' +
+      '<dt>Total cost</dt><dd>' + money(total) + ' of ' + money(pu.budget) + ' budget</dd>' +
+      '<dt>Client needs met</dt><dd>' + (pu.reqs.length - unmet.length) + ' of ' + pu.reqs.length + (unmet.length ? ' (missed: ' + esc(unmet.map(reqLabel).join('; ')) + ')' : '') + '</dd>' +
+      '<dt>Cooling</dt><dd>' + (coolOk() ? 'Keeps up with the CPU' : 'Too weak: the CPU will slow down') + '</dd>' +
+      '<dt>Recommended devices</dt><dd>' + recHit + ' of ' + pu.rec.length + '</dd>' +
+      '<dt>Stage 1</dt><dd>' + helps + ' hint' + (helps === 1 ? '' : 's') + ', ' + S.s1.wrong + ' wrong attempt' + (S.s1.wrong === 1 ? '' : 's') + '</dd>' +
+      '<dt>Input or output mistakes</dt><dd>' + S.pwrong + '</dd></dl></div>' +
+      '<div class="card tint"><h3>Write in your book</h3><ol class="qs">' +
+      '<li>Which part did you spend the most on (you chose ' + esc(T[biggest].label + ': ' + opt(biggest).n) + ')? Explain why your client needs it.</li>' +
+      '<li>Explain one part you chose using the kitchen analogy.</li>' +
+      '<li>Name one input and one output device on your desk and say what each one does.</li></ol></div>' +
+      '<div class="card tint"><h3>Last step: real computers</h3><p>See how your build compares with computers you can actually buy.</p><div class="row"><button class="btn go big" data-a="goto" data-n="5">Compare with real computers →</button></div></div>' +
+      '<div class="card"><div class="row"><button class="btn primary" data-a="copy">Copy my build summary</button><button class="btn" data-a="another">Build for another client</button><button class="btn" data-a="restart">Start again from Stage 1</button></div><p class="small" id="copyNote"></p></div>';
+  }
+  // ---------- stage 5 ----------
+  var rc = {};
+  function renderS5() {
+    ui.sawReal = true;
+    var pu = purpose();
+    var mine = SITE_FOR[pu.id] || [];
+    var ordered = SITES.filter(function (s) { return mine.indexOf(s.id) >= 0; }).concat(SITES.filter(function (s) { return mine.indexOf(s.id) < 0; }));
+    var cards = ordered.map(function (s) {
+      var rec = mine.indexOf(s.id) >= 0;
+      return '<div class="site' + (rec ? ' rec' : '') + '"><div class="tags"><i class="tag ' + (rec ? 'rec' : 'out') + '">' + (rec ? 'Good for your client' : esc(s.kind)) + '</i>' + (rec ? '<i class="tag out">' + esc(s.kind) + '</i>' : '') + '</div>' +
+        '<h3>' + esc(s.n) + '</h3><p>' + esc(s.d) + '</p><p class="look"><b>Look for:</b> ' + esc(s.look) + '</p>' +
+        '<a class="btn primary" href="' + s.url + '" target="_blank" rel="noopener noreferrer">Open ' + esc(s.n.split(' ')[0]) + ' ↗</a></div>';
+    }).join('');
+    var form = RC_FIELDS.map(function (f) {
+      return '<label class="fld" for="rc-' + f[0] + '"><span>' + f[1] + '</span><input id="rc-' + f[0] + '" data-rc="' + f[0] + '" value="' + esc(rc[f[0]] || '') + '" autocomplete="off"' + (f[0] === 'price' ? ' inputmode="decimal"' : '') + '></label>';
+    }).join('');
+    return '<div class="card"><p class="eyebrow">Stage 5 · Real computers</p><h2>Compare with computers you can buy</h2><p class="lede">Your ' + esc(pu.name.toLowerCase()) + ' build cost ' + money(towerCost() + periphCost()) + '. Open these websites and look at real specifications. The two marked “Good for your client” are the best place to start.</p>' +
+      '<p class="fb tip"><b>Look, don’t buy.</b> Do not sign in, create an account or type any personal details on these sites.</p></div>' +
+      '<div class="sites">' + cards + '</div>' +
+      '<div class="card"><h3>Spec detective</h3><p class="small">Pick one real computer and copy its specification here. The table compares it with your build.</p><div class="rcform">' + form + '</div><div class="tablewrap" id="rcTable">' + rcTable() + '</div></div>' +
+      '<div class="card tint"><h3>Write in your book</h3><ol class="qs"><li>Is the real computer better or worse value than your build? Give a reason.</li><li>Which part is most different from yours, and would that suit your client?</li><li>The real computer’s price includes things you did not pay for in this activity. Name one (for example the operating system, a warranty, or someone to build it).</li></ol></div>';
+  }
+  function rcTable() {
+    var rows = [['Price', money(towerCost() + periphCost()), rc.price ? (/^[0-9.,\s]+$/.test(rc.price) ? '£' + rc.price.replace(/\s/g, '') : rc.price) : ''],
+      ['CPU', opt('cpu').n + ' (' + opt('cpu').s + ')', rc.cpu], ['RAM', opt('ram').n, rc.ram], ['Storage', opt('storage').n, rc.storage], ['GPU', opt('gpu').n, rc.gpu]];
+    return '<table class="cmp"><thead><tr><th scope="col"></th><th scope="col">Your build</th><th scope="col">' + esc(rc.name || 'Real computer') + (rc.site ? '<span class="small"> · ' + esc(rc.site) + '</span>' : '') + '</th></tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr><th scope="row">' + r[0] + '</th><td>' + esc(r[1]) + '</td><td>' + (r[2] ? esc(r[2]) : '<span class="small">Not filled in yet</span>') + '</td></tr>'; }).join('') + '</tbody></table>';
+  }
+  panel.addEventListener('input', function (e) {
+    var k = e.target.getAttribute && e.target.getAttribute('data-rc'); if (!k) return;
+    rc[k] = e.target.value; var t = document.getElementById('rcTable'); if (t) t.innerHTML = rcTable();
+  });
+
+  function playPost() {
+    var box = document.getElementById('post'); if (!box) return;
+    var lines = postLines();
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || playPost.done) { box.innerHTML = lines.join('\n'); return; }
+    var i = 0; box.innerHTML = '';
+    (function next() {
+      if (!document.getElementById('post')) return;
+      box.innerHTML += (i ? '\n' : '') + lines[i]; i++;
+      if (i < lines.length) setTimeout(next, 320); else playPost.done = true;
+    })();
+  }
+  function summaryText() {
+    var pu = purpose(), out = ['My PC build for: ' + pu.name + ' (budget ' + money(pu.budget) + ')'];
+    TIER_KEYS.forEach(function (k) { out.push(T[k].label + ': ' + opt(k).n + ' (' + money(opt(k).p) + ')'); });
+    out.push('Peripherals: ' + S.periph.map(function (c) { var d = pById(c.id); return d.n + ' [' + TYPE_WORD[d.t] + ']'; }).join(', '));
+    out.push('Total: ' + money(towerCost() + periphCost()));
+    out.push('Rating: ' + towerStars() + ' out of 5 stars');
+    return out.join('\n');
+  }
+
+  // ---------- top bar: progress and price ----------
+  function currentPrice() {
+    if (S.stage === 1 && !S.s1.powered) { var t = 0; for (var i = 0; i < S.s1.i; i++) t += S1_PRICE[ORDER[i]]; return t; }
+    return towerCost() + periphCost();
+  }
+  function progressPct() {
+    var p = (S.s1.i / 8) * 30 + (S.s1.powered ? 5 : 0) + (S.purpose ? 10 : 0) + (S.s2done ? 20 : 0) +
+      (S.finished ? 25 : Math.min(20, S.periph.length * 5)) + (S.finished ? 5 : 0) + (S.stage === 5 || ui.sawReal ? 5 : 0);
+    return Math.round(Math.min(100, p));
+  }
+  var lastPrice = null;
+  function renderTop() {
+    var pct = progressPct();
+    document.getElementById('pstage').textContent = 'Stage ' + S.stage + ' of 5 · ' + STAGE_NAMES[S.stage - 1];
+    document.getElementById('ppct').textContent = pct + '% complete';
+    var bar = document.getElementById('pbar'); bar.setAttribute('aria-valuenow', pct); bar.firstElementChild.style.width = pct + '%';
+    var price = currentPrice();
+    document.getElementById('pv').textContent = money(price);
+    if (lastPrice !== null && price !== lastPrice) {
+      var box = document.querySelector('.price'), old = box.querySelector('.delta'); if (old) old.remove();
+      var d = document.createElement('span'); var diff = price - lastPrice;
+      d.className = 'delta ' + (diff > 0 ? 'up' : 'down'); d.setAttribute('aria-hidden', 'true');
+      d.textContent = (diff > 0 ? '+' : '−') + money(Math.abs(diff));
+      box.appendChild(d); setTimeout(function () { d.remove(); }, 1700);
+    }
+    lastPrice = price;
+  }
+
+  // ---------- confetti ----------
+  function confetti() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var old = document.getElementById('confetti'); if (old) old.remove();
+    var c = document.createElement('canvas'); c.id = 'confetti'; c.setAttribute('aria-hidden', 'true'); document.body.appendChild(c);
+    var ctx = c.getContext('2d'); if (!ctx) return;
+    var dpr = window.devicePixelRatio || 1, W = window.innerWidth, H = window.innerHeight;
+    c.width = W * dpr; c.height = H * dpr; ctx.scale(dpr, dpr);
+    var cols = ['#F3A712', '#02C39A', '#028090', '#5BA8F5', '#E4572E', '#FFD166'];
+    var bits = [];
+    for (var i = 0; i < 160; i++) bits.push({ x: Math.random() * W, y: -20 - Math.random() * H * 0.6, w: 6 + Math.random() * 6, h: 10 + Math.random() * 8,
+      vy: 2.5 + Math.random() * 3.5, vx: -1.5 + Math.random() * 3, r: Math.random() * 6.28, vr: -0.2 + Math.random() * 0.4, c: cols[i % cols.length], sway: Math.random() * 6.28 });
+    var start = performance.now();
+    (function frame(now) {
+      var t = now - start; ctx.clearRect(0, 0, W, H);
+      var alive = false;
+      bits.forEach(function (b) {
+        b.y += b.vy; b.sway += 0.05; b.x += b.vx + Math.sin(b.sway) * 0.8; b.r += b.vr;
+        if (b.y < H + 30) alive = true;
+        ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.r); ctx.globalAlpha = t > 3200 ? Math.max(0, 1 - (t - 3200) / 600) : 1;
+        ctx.fillStyle = b.c; ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); ctx.restore();
+      });
+      if (alive && t < 3800) requestAnimationFrame(frame); else c.remove();
+    })(start);
+  }
+
+  // ---------- render + events ----------
+  function render() {
+    renderStepper(); renderRig(); renderSpec(); renderTop();
+    if (S.stage === 5) renderS5(); // marks the stage as seen before the top bar is drawn
+    renderTop();
+    panel.innerHTML = S.stage === 1 ? renderS1() : S.stage === 2 ? renderS2() : S.stage === 3 ? renderS3() : S.stage === 4 ? renderS4() : renderS5();
+    if (S.stage === 4) playPost();
+  }
+
+  panel.addEventListener('focusin', function (e) { if (e.target.classList && e.target.classList.contains('blank')) ui.lastBlank = e.target.id; });
+  panel.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.classList.contains('blank')) { e.preventDefault(); checkS1(); } });
+  panel.addEventListener('mousedown', function (e) { if (e.target.closest('[data-a="chip"]')) e.preventDefault(); });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+    var a = b.getAttribute('data-a');
+    if (a === 'goto') { var n = +b.getAttribute('data-n'); if (canGo(n)) { S.stage = n; ui.msg = null; ui.confirmGo = false; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } return; }
+    if (a === 'check') return checkS1();
+    if (a === 'hint') return hintS1();
+    if (a === 'chip') {
+      var tgt = (ui.lastBlank && panel.querySelector('#' + ui.lastBlank)) || [].filter.call(panel.querySelectorAll('.blank'), function (i) { return !i.value; })[0] || panel.querySelector('.blank');
+      if (tgt) { tgt.value = b.getAttribute('data-w'); tgt.classList.remove('wrong'); var nxt = [].filter.call(panel.querySelectorAll('.blank'), function (i) { return !i.value; })[0]; (nxt || tgt).focus(); }
+      return;
+    }
+    if (a === 'power') { S.s1.powered = true; ui.msg = null; S.tiers = clone(DEFAULT_TIERS); save(); render(); confetti(); return; }
+    if (a === 'purpose') { S.purpose = b.getAttribute('data-id'); S.s2done = false; S.finished = false; ui.confirmGo = false; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (a === 'purpose-reset') { S.purpose = null; S.s2done = false; S.finished = false; S.periph = []; save(); render(); return; }
+    if (a === 'tier') {
+      var k = b.getAttribute('data-k'), i = +b.getAttribute('data-i');
+      S.tiers[k] = i; S.finished = false; ui.confirmGo = false; save();
+      var y = window.scrollY; render(); window.scrollTo(0, y);
+      flash(k === 'psu' ? 'psu' : k);
+      var again = panel.querySelector('[data-a="tier"][data-k="' + k + '"][data-i="' + i + '"]'); if (again) again.focus({ preventScroll: true });
+      return;
+    }
+    if (a === 'stay') { ui.confirmGo = false; render(); return; }
+    if (a === 's2next') {
+      var pu = purpose(); var unmet = pu.reqs.filter(function (r) { return !reqMet(r); }).length;
+      if ((unmet || !coolOk()) && !b.getAttribute('data-force')) { ui.confirmGo = true; var yy = window.scrollY; render(); window.scrollTo(0, yy); return; }
+      S.s2done = true; S.stage = 3; ui.confirmGo = false; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); confetti(); return;
+    }
+    if (a === 'padd') { ui.pending = b.getAttribute('data-id'); ui.pfb = null; keepScroll(); return; }
+    if (a === 'pcancel') { ui.pending = null; ui.pfb = null; keepScroll(); return; }
+    if (a === 'premove') { var id = b.getAttribute('data-id'); S.periph = S.periph.filter(function (c) { return c.id !== id; }); S.finished = false; save(); keepScroll(); return; }
+    if (a === 'classify') {
+      var d = pById(b.getAttribute('data-id')), t = b.getAttribute('data-t');
+      if (t === d.t) { S.periph.push({ id: d.id }); ui.pending = null; ui.pfb = null; S.finished = false; save(); keepScroll(); flash('io'); }
+      else {
+        S.pwrong++; save();
+        var hint = d.t === 'both' ? 'Think again: does it send something in <i>and</i> give something back out?' :
+          t === 'both' ? 'It only works in one direction. Does data go into the computer, or come out of it?' :
+          d.t === 'in' ? 'Not quite. Does it show or play anything, or does it send something into the computer?' : 'Not quite. Does it send anything into the computer, or does it show or play results?';
+        ui.pfb = hint; keepScroll();
+      }
+      return;
+    }
+    if (a === 'finish') { S.finished = true; S.stage = 4; playPost.done = false; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); confetti(); return; }
+    if (a === 'copy') {
+      var txt = summaryText(), note = document.getElementById('copyNote');
+      try {
+        navigator.clipboard.writeText(txt).then(function () { note.textContent = 'Copied. Paste it into your notes or Teams.'; }, function () { showText(note, txt); });
+      } catch (err) { showText(note, txt); }
+      return;
+    }
+    if (a === 'another') { ui.sawReal = false; rc = {}; S.purpose = null; S.tiers = clone(DEFAULT_TIERS); S.periph = []; S.s2done = false; S.finished = false; S.stage = 2; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (a === 'restart') { ui.sawReal = false; rc = {}; S = fresh(); ui.msg = null; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  });
+  function keepScroll() { var y = window.scrollY; render(); window.scrollTo(0, y); }
+  function showText(note, txt) { note.innerHTML = 'Copy this text:<br><textarea id="copyBox" rows="8" style="width:100%;font-family:var(--mono);font-size:14px">' + esc(txt) + '</textarea>'; var t = document.getElementById('copyBox'); t.focus(); t.select(); }
+
+  if (S.stage >= 4 && !S.finished) S.stage = 3;
+  if (S.stage >= 2 && !S.s1.powered) S.stage = 1;
+  if (S.stage === 3 && !S.purpose) S.stage = 2;
+  render();
+})();
+</script>
+
+</body></html>
