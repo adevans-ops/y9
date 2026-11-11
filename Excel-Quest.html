@@ -379,6 +379,7 @@ const XP_TASK = 100, XP_BONUS = 50;
 const HELP_COST = [0, 20, 50]; // XP taken off for nudge, steps, answer
 const RANKS = [[0,'Intern'],[300,'Assistant'],[700,'Analyst'],[1200,'Manager'],[1800,'Director'],[2400,'Managing Director'],[2900,'CEO']];
 const SIZES = [8,9,10,11,12,14,16,18,20,24,28,36];
+const ADMIN = new URLSearchParams(location.search).get('admin') === 'true';
 
 const PALETTE = [
   ['#FFFFFF','White'],['#000000','Black'],['#E7E6E6','Light Gray'],['#44546A','Blue-Gray'],['#4472C4','Blue, Accent 1'],['#ED7D31','Orange, Accent 2'],['#A5A5A5','Gray'],['#FFC000','Gold'],['#5B9BD5','Light Blue, Accent 5'],['#70AD47','Green, Accent 6'],
@@ -1336,7 +1337,7 @@ function api(sh){
 }
 function statusOf(id){ return state.done[id] ? 'done' : (state.help[id] && state.help[id].skipped) ? 'skipped' : 'todo'; }
 function finishedCount(sheet){ return QUESTS[sheet].tasks.filter(t => !t.nav && statusOf(t.id)!=='todo').length; }
-function unlocked(sheet){ const q = QUESTS[sheet]; return !q.unlockFrom || finishedCount(q.unlockFrom) >= q.unlockAt; }
+function unlocked(sheet){ if(ADMIN) return true; const q = QUESTS[sheet]; return !q.unlockFrom || finishedCount(q.unlockFrom) >= q.unlockAt; }
 function taskXP(t){ const lv = (state.help[t.id] || {}).level || 0; return XP_TASK - (lv ? HELP_COST[lv-1] : 0); }
 function runChecks(){
   cache = new Map();
@@ -1487,6 +1488,9 @@ function tick(){
 }
 
 /* ---------- boot ---------- */
+const wantLevel = new URLSearchParams(location.search).get('level');
+if(ADMIN && SHEET_IDS.includes(wantLevel)) state.active = wantLevel;
+if(ADMIN) toast('Admin view: all worksheets open');
 sel = state.sel[state.active] || sel;
 if(!unlocked(state.active)) state.active = 'easy';
 render(); runChecks(); renderPanel();
