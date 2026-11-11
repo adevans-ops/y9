@@ -475,6 +475,8 @@ table.cmp tbody th { color: var(--head); width: 18%; }
   }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   var S = fresh();
+  var QS = new URLSearchParams(location.search);
+  var ADMIN = QS.get('admin') === 'true';
   function save() {}
 
   var ui = { msg: null, pending: null, pfb: null, flash: null, lastBlank: null, confirmGo: false };
@@ -549,8 +551,31 @@ table.cmp tbody th { color: var(--head); width: 18%; }
     dl.innerHTML = rows;
   }
 
+  // Admin only (?admin=true): jumping past a stage that has not been finished fills it in,
+  // so the chosen stage has the values it needs. Stages the student has finished are left alone.
+  function presetTo(n) {
+    if (!ADMIN) return;
+    if (n >= 2 && !S.s1.powered) { S.s1.i = 8; S.s1.powered = true; }
+    if (n >= 3 && !S.s2done) { if (!S.purpose) S.purpose = 'gamer'; S.tiers = presetTiers(purpose()); S.s2done = true; }
+    if (n >= 4 && !S.finished) { if (!S.periph.length) S.periph = purpose().rec.map(function (id) { return { id: id }; }); S.finished = true; }
+  }
+  function presetTiers(pu) {
+    var t = clone(DEFAULT_TIERS), i;
+    pu.reqs.forEach(function (r) {
+      if (r.min != null) t[r.k] = Math.max(t[r.k], r.min);
+      else t[r.k] = Math.min(t[r.k], r.max);
+    });
+    var need = BASE.w + T.cpu.opts[t.cpu].w + T.gpu.opts[t.gpu].w + 100;
+    for (i = 0; i < T.cooling.opts.length - 1 && T.cooling.opts[i].max < t.cpu; i++);
+    t.cooling = i;
+    for (i = 0; i < T.psu.opts.length - 1 && T.psu.opts[i].w < need; i++);
+    t.psu = i;
+    return t;
+  }
+
   // ---------- stepper ----------
   function canGo(n) {
+    if (ADMIN) return true;
     if (n === 1) return true;
     if (n === 2) return S.s1.powered;
     if (n === 3) return S.s2done;
@@ -893,7 +918,7 @@ table.cmp tbody th { color: var(--head); width: 18%; }
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
     var a = b.getAttribute('data-a');
-    if (a === 'goto') { var n = +b.getAttribute('data-n'); if (canGo(n)) { S.stage = n; ui.msg = null; ui.confirmGo = false; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } return; }
+    if (a === 'goto') { var n = +b.getAttribute('data-n'); if (canGo(n)) { presetTo(n); S.stage = n; ui.msg = null; ui.confirmGo = false; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } return; }
     if (a === 'check') return checkS1();
     if (a === 'hint') return hintS1();
     if (a === 'chip') {
@@ -947,6 +972,8 @@ table.cmp tbody th { color: var(--head); width: 18%; }
   function keepScroll() { var y = window.scrollY; render(); window.scrollTo(0, y); }
   function showText(note, txt) { note.innerHTML = 'Copy this text:<br><textarea id="copyBox" rows="8" style="width:100%;font-family:var(--mono);font-size:14px">' + esc(txt) + '</textarea>'; var t = document.getElementById('copyBox'); t.focus(); t.select(); }
 
+  var LEVEL = +QS.get('level');
+  if (ADMIN && LEVEL >= 1 && LEVEL <= 5) { presetTo(LEVEL); S.stage = LEVEL; }
   if (S.stage >= 4 && !S.finished) S.stage = 3;
   if (S.stage >= 2 && !S.s1.powered) S.stage = 1;
   if (S.stage === 3 && !S.purpose) S.stage = 2;
