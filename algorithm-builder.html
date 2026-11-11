@@ -209,6 +209,18 @@ ol.qs { margin: 0; padding-left: 22px; display: flex; flex-direction: column; ga
   var app = document.getElementById('app');
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
+  // Admin only (?admin=true): bronze, silver and gold can be opened from the stepper.
+  // Opening a level fills in the earlier levels that are not finished yet, so it has the work it needs.
+  // Finished levels are left alone.
+  var ADMIN = new URLSearchParams(location.search).get('admin') === 'true';
+  var ADMIN_LEVELS = ['bronze', 'silver', 'gold'];
+  function presetTo(l) {
+    if (!ADMIN) return;
+    var i = LEVELS.indexOf(l);
+    if (i >= 1 && !S.done.bronze) { S.t = { q1: 't1', q2: 't2', q3: 't3', p5: 't4', q4: 't5', p6: 't6' }; S.done.bronze = true; }
+    if (i >= 2 && !S.done.silver) { S.s = { A: 's1', B: 's2', C: 's3', D: 's4', F: 's5', E: 's6' }; S.done.silver = true; }
+  }
+
   // ================= BRONZE: make a cup of tea (flowchart with selection and iteration) =================
   var TB = {
     t1: { t: 'd', x: 'Is there water in the kettle?' }, t2: { t: 'd', x: 'Has the kettle boiled?' },
@@ -648,7 +660,7 @@ ol.qs { margin: 0; padding-left: 22px; display: flex; flex-direction: column; ga
     p += S.done.gold ? 40 : (S.g.hand ? 10 : 0) + gf * 4;
     return Math.round(Math.min(100, p));
   }
-  function canGo(l) { return l === 'bronze' || (l === 'silver' && S.done.bronze) || (l === 'gold' && S.done.silver) || (l === 'done' && S.done.gold); }
+  function canGo(l) { if (ADMIN && ADMIN_LEVELS.indexOf(l) >= 0) return true; return l === 'bronze' || (l === 'silver' && S.done.bronze) || (l === 'gold' && S.done.silver) || (l === 'done' && S.done.gold); }
   function renderChrome() {
     document.getElementById('stepper').innerHTML = LEVELS.map(function (l) {
       var won = l !== 'done' && S.done[l];
@@ -693,7 +705,7 @@ ol.qs { margin: 0; padding-left: 22px; display: flex; flex-direction: column; ga
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
     var a = b.getAttribute('data-a');
-    if (a === 'goto') { var l = b.getAttribute('data-l'); if (canGo(l)) { clearTimeout(ui.timer); ui.running = false; S.level = l; ui.msg = null; ui.results = null; ui.active = null; ui.k = null; ui.sfinal = null; ui.gfinal = null; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } return; }
+    if (a === 'goto') { var l = b.getAttribute('data-l'); if (canGo(l)) { presetTo(l); clearTimeout(ui.timer); ui.running = false; S.level = l; ui.msg = null; ui.results = null; ui.active = null; ui.k = null; ui.sfinal = null; ui.gfinal = null; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } return; }
     if (a === 'hint') { var hl = b.getAttribute('data-l'); S.hints[hl]++; keep(render); return; }
     if (ui.running && a !== 'gskip') return;
     // bronze
@@ -752,6 +764,8 @@ ol.qs { margin: 0; padding-left: 22px; display: flex; flex-direction: column; ga
     }
   });
 
+  var LV = new URLSearchParams(location.search).get('level');
+  if (ADMIN && ADMIN_LEVELS.indexOf(LV) >= 0) { presetTo(LV); S.level = LV; }
   render();
 })();
 </script>
