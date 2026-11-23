@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Block Coding Playground</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caladea:wght@700&family=Carlito:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a header with the challenge tabs, then three columns.
+   Far left: the toolbox of blocks, stacked vertically.
+   Middle: the challenge brief and the program you build.
+   Right: the terminal. Blocks are turned into Python, which runs in the terminal. */
+:root {
+  --bg: #EEF3F2;
+  --ink: #16262A;
+  --muted: #4F6B6E;
+  --line: #CFDEDC;
+  --brand: #013438;
+  --brand-2: #015C63;
+  --accent: #02C39A;
+  --accent-ink: #013438;
+  --eyebrow: #0B7A66;
+  --paper: #FFFFFF;
+  --code-bg: #0F2A2E;
+  --code-ink: #E6F4F1;
+  --term-bg: #0B1B1E;
+  --term-ink: #CDEDE8;
+  --term-mute: #7FA3A3;
+  --err: #FF9E94;
+  --warn: #F3A712;
+  --display: Caladea, Cambria, Georgia, serif;
+  --body: Carlito, Calibri, Arial, sans-serif;
+  --mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.5 var(--body); display: flex; flex-direction: column; }
+button, select { font: inherit; }
+:focus-visible { outline: 3px solid var(--warn); outline-offset: 2px; }
+
+.top { background: var(--brand); color: #FFFFFF; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; padding: 12px 20px; }
+.brand { font: 700 24px/1 var(--display); margin: 0; }
+.admin-badge { background: var(--warn); color: var(--brand); font: 700 13px/1 var(--body); padding: 6px 12px; border-radius: 999px; letter-spacing: 0.04em; }
+.levels { display: flex; gap: 8px; margin-left: auto; }
+.level-tab { width: 42px; height: 42px; border-radius: 10px; border: 1.5px solid rgba(255, 255, 255, 0.4); background: transparent; color: #FFFFFF; font: 700 18px/1 var(--body); cursor: pointer; position: relative; }
+.level-tab:hover:not(:disabled) { border-color: var(--accent); }
+.level-tab.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.level-tab.done::after { content: ""; position: absolute; right: 4px; bottom: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.level-tab.active.done::after { background: var(--brand); }
+.level-tab:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 240px minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; padding: 16px; }
+.left { min-height: 0; min-width: 0; display: flex; flex-direction: column; gap: 12px; overflow: auto; }
+.right { min-height: 0; min-width: 0; display: flex; flex-direction: column; background: var(--term-bg); border-radius: 12px; overflow: hidden; color: var(--term-ink); }
+
+.brief { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 20px; display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }
+.eyebrow { font: 700 13px/1.2 var(--body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--eyebrow); margin: 0; }
+.brief h1 { font: 700 26px/1.15 var(--display); color: var(--brand); margin: 0; text-wrap: balance; }
+.brief p { margin: 0; max-width: 70ch; }
+.hint summary { cursor: pointer; font-weight: 700; color: var(--brand-2); }
+.hint-code { font: 15px/1.5 var(--mono); background: #EEF6F5; border-radius: 8px; padding: 10px 12px; margin: 8px 0 0; white-space: pre; overflow-x: auto; }
+.results { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.results li { padding: 8px 12px; border-radius: 8px; font-size: 16px; }
+.results li.ok { background: #E3F7F1; color: #0B4D40; }
+.results li.bad { background: #FCE9E7; color: #7A1F16; }
+.verdict { font: 700 17px/1.3 var(--body); color: var(--brand); min-height: 1.3em; }
+
+.panel-title { margin: 0; font: 700 13px/1.2 var(--body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--eyebrow); display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.panel-title span { letter-spacing: 0; text-transform: none; font-weight: 400; color: var(--muted); font-size: 14px; }
+
+.toolbox { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 0; min-width: 0; overflow: auto; }
+.toolbox > * { flex-shrink: 0; }
+.palette { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.pal { display: block; width: 100%; text-align: left; border: 0; border-radius: 10px; padding: 8px 10px; background: var(--c); color: #FFFFFF; font: 700 15px/1.9 var(--body); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.pal:hover { filter: brightness(1.08); }
+.pal:focus-visible { outline: 3px solid var(--warn); outline-offset: 2px; }
+.pf { display: inline-block; background: #FFFFFF; color: #13262A; border-radius: 6px; padding: 0 8px; font-weight: 600; line-height: 1.5; }
+.pv { display: inline-block; background: #FFFFFF; color: #4F6B6E; border-radius: 999px; padding: 0 9px; font-weight: 600; font-size: 14px; line-height: 1.5; }
+.pbody { display: block; margin: 2px 0 2px 10px; padding-left: 8px; border-left: 4px solid rgba(255, 255, 255, 0.5); font-size: 13px; font-weight: 400; opacity: 0.9; }
+
+.vars { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 30px; }
+.vars-label { font: 700 14px/1.2 var(--body); color: var(--brand); margin-right: 4px; }
+.vars-none { color: var(--muted); font-size: 14px; }
+
+.trash { border: 2px dashed #C9B6B3; border-radius: 10px; padding: 6px 8px; text-align: center; font: 700 15px/1.3 var(--body); color: #7A1F16; opacity: 0.5; }
+.dragging .trash { opacity: 1; background: #FCE9E7; border-color: #B3261E; }
+
+.program { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1 0 auto; min-height: 430px; }
+.program-head { display: flex; align-items: center; gap: 10px; }
+.program-head .spacer { flex: 1; }
+.workspace { flex: 1 1 auto; min-height: 120px; overflow: auto; background: #F4F9F8; border: 1px dashed var(--line); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; }
+.empty-note { color: var(--muted); margin: 6px 4px; font-size: 16px; }
+.status { margin: 0; min-height: 1.3em; font-size: 15px; color: var(--muted); }
+
+.pyview { border-radius: 10px; overflow: hidden; background: var(--code-bg); }
+.pyview summary { cursor: pointer; padding: 9px 14px; background: #0A2024; color: var(--code-ink); font: 600 14px/1.2 var(--body); }
+.pyview pre { margin: 0; padding: 12px 14px; color: var(--code-ink); font: 14px/1.55 var(--mono); white-space: pre; overflow: auto; max-height: 240px; }
+
+/* Blocks in the toolbox and the program */
+.block { background: var(--c); color: #FFFFFF; border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; user-select: none; -webkit-user-select: none; }
+.block.bad { box-shadow: 0 0 0 3px #FF6B5E; }
+.bhead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 7px; font: 700 16px/1.3 var(--body); cursor: grab; touch-action: none; }
+.word { white-space: nowrap; }
+.block input, .block select { user-select: text; -webkit-user-select: text; }
+.fld { font: 600 15px/1.3 var(--body); color: #13262A; background: #FFFFFF; border: 0; border-radius: 6px; padding: 3px 7px; min-width: 40px; }
+.fld.q { width: 170px; }
+.fld.nm { width: 110px; }
+.fld.nm.invalid { outline: 3px solid #FF6B5E; }
+.fld.v { width: 86px; border-radius: 999px; }
+select.fld { padding: 3px 6px; cursor: pointer; }
+.slot { display: inline-flex; align-items: center; min-height: 30px; padding: 2px; border-radius: 999px; background: #FFFFFF; }
+.slot.hover { box-shadow: 0 0 0 4px #FFD23F; }
+.chip { display: inline-flex; align-items: center; gap: 4px; background: #FFE7C2; color: #3A2100; border: 1.5px solid #B8600F; border-radius: 999px; padding: 1px 4px 1px 10px; font: 700 15px/1.4 var(--mono); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.chip.missing { background: #FCE9E7; border-color: #B3261E; color: #7A1F16; }
+.chip .x { background: transparent; border: 0; color: inherit; font: 700 16px/1 var(--body); padding: 0 4px; cursor: pointer; }
+.del { margin-left: auto; background: rgba(255, 255, 255, 0.25); border: 0; color: #FFFFFF; border-radius: 6px; width: 28px; height: 28px; font: 700 18px/1 var(--body); cursor: pointer; }
+.del:hover { background: rgba(255, 255, 255, 0.4); }
+.body { display: flex; flex-direction: column; margin-left: 12px; padding-left: 10px; border-left: 4px solid rgba(255, 255, 255, 0.5); }
+
+/* Drop zones between blocks. They open up while something is being dragged. */
+.drop { height: 10px; margin: 2px 0; border-radius: 6px; box-sizing: border-box; }
+.dragging .drop { height: 34px; margin: 3px 0; border: 2px dashed rgba(1, 52, 56, 0.35); background: rgba(1, 52, 56, 0.06); }
+/* The empty space at the end of the program is a drop zone too, so it fills the rest of the panel. */
+.dragging .drop[data-before=""] { flex: 1 0 48px; }
+.dragging .body .drop { border-color: rgba(255, 255, 255, 0.85); background: rgba(255, 255, 255, 0.15); }
+.drop.hover { background: #FFD23F; border-color: #C9A000; }
+
+.ghost { position: fixed; z-index: 100; pointer-events: none; transform: translate(-50%, -50%); color: #FFFFFF; padding: 8px 14px; border-radius: 10px; font: 700 16px/1.3 var(--body); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); white-space: nowrap; }
+.dragging, .dragging * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
+
+.btn { font: 700 16px/1 var(--body); padding: 10px 16px; border-radius: 9px; border: 1.5px solid var(--brand-2); background: var(--paper); color: var(--brand); cursor: pointer; }
+.btn:hover:not(:disabled) { background: #E3F2F0; }
+.btn.small { font-size: 14px; padding: 7px 12px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover:not(:disabled) { background: #14D9A9; }
+.btn.admin { border-style: dashed; border-color: #8A5A00; color: #6B4400; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; flex: 0 0 auto; }
+.keys { margin-left: auto; color: var(--muted); font-size: 14px; }
+
+.termbar { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; background: #081517; font: 700 13px/1 var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--term-mute); }
+.termbar button { background: transparent; border: 1px solid #2C4A4E; color: var(--term-ink); border-radius: 6px; padding: 4px 10px; font: 600 13px/1 var(--body); cursor: pointer; }
+.term { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px; font: 15px/1.6 var(--mono); }
+.line { white-space: pre-wrap; word-break: break-word; }
+.line.out { color: var(--term-ink); }
+.line.echo { color: var(--accent); }
+.line.err { color: var(--err); }
+.line.sys { color: var(--term-mute); }
+.line.ok { color: var(--accent); font-weight: 600; }
+.inputrow { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-top: 1px solid #1E3A3E; font: 15px/1.6 var(--mono); }
+.inputrow[hidden] { display: none !important; }
+
+/* Confetti that falls from the top of the page when a challenge is passed */
+.confetti { position: fixed; top: 0; left: 0; right: 0; height: 0; overflow: visible; pointer-events: none; z-index: 200; }
+.confetti span { position: absolute; top: -24px; width: var(--w); height: var(--h); background: var(--col); border-radius: 2px; animation: confetti-fall var(--dur) cubic-bezier(0.2, 0.6, 0.4, 1) var(--delay) forwards; }
+@keyframes confetti-fall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translate3d(var(--drift), 105vh, 0) rotate(var(--spin)); opacity: 0; }
+}
+.prompt { color: var(--term-ink); white-space: pre; }
+.inputrow input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: var(--accent); font: 15px/1.6 var(--mono); caret-color: var(--accent); }
+
+@media (max-width: 860px) {
+  html, body { height: auto; }
+  .layout { grid-template-columns: 1fr; }
+  .left { overflow: visible; }
+  .toolbox { overflow: visible; }
+  .palette { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+  .program { height: auto; min-height: 460px; }
+  .workspace { min-height: 260px; }
+  .right { min-height: 380px; }
+  .levels { margin-left: 0; }
+  .keys { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <p class="brand">Block Coding Playground</p>
+  <span class="admin-badge" id="adminBadge" hidden>Admin mode</span>
+  <nav class="levels" id="levels" aria-label="Challenges"></nav>
+</header>
+
+<main class="layout">
+  <aside class="toolbox" aria-label="Toolbox">
+    <p class="panel-title">Toolbox</p>
+    <p class="status">Drag a block into your program, or click one to add it to the end.</p>
+    <div class="trash" data-trash>Drop a block here to remove it</div>
+    <div class="palette" id="palette"></div>
+    <div class="vars">
+      <span class="vars-label">Variables</span>
+      <span id="varChips" style="display:contents"></span>
+    </div>
+  </aside>
+
+  <section class="left" aria-label="Challenge and program">
+    <div class="brief">
+      <p class="eyebrow" id="levelLabel"></p>
+      <h1 id="levelTitle"></h1>
+      <p id="levelBrief"></p>
+      <details class="hint" id="hint">
+        <summary>Show a hint</summary>
+        <pre class="hint-code" id="hintCode"></pre>
+      </details>
+      <ul class="results" id="results" hidden></ul>
+      <p class="verdict" id="verdict" aria-live="polite"></p>
+    </div>
+
+    <div class="program">
+      <div class="program-head">
+        <p class="panel-title">Your program <span id="blockCount"></span></p>
+        <span class="spacer"></span>
+        <button type="button" class="btn small" id="reset">Clear program</button>
+      </div>
+      <div class="workspace" id="workspace" aria-label="Program blocks"></div>
+      <p class="status" id="status" aria-live="polite"></p>
+      <div class="actions">
+        <button type="button" class="btn primary" id="run" disabled>Run</button>
+        <button type="button" class="btn" id="check" disabled>Check challenge</button>
+        <button type="button" class="btn" id="next" hidden>Next challenge</button>
+        <button type="button" class="btn admin" id="skip" hidden>Skip this level</button>
+        <span class="keys">Ctrl+Enter runs the program</span>
+      </div>
+      <details class="pyview">
+        <summary>See the Python code</summary>
+        <pre id="pyPreview"></pre>
+      </details>
+    </div>
+  </section>
+
+  <section class="right" aria-label="Terminal">
+    <div class="termbar">
+      <span>Terminal</span>
+      <button type="button" id="clear">Clear</button>
+    </div>
+    <div class="term" id="term" role="log" aria-live="polite"></div>
+    <div class="inputrow" id="inputRow" hidden>
+      <span class="prompt" id="prompt"></span>
+      <input id="termInput" type="text" autocomplete="off" aria-label="Type your answer and press Enter">
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+
+<script type="text/plain" id="py-harness">
+import ast
+import json
+import sys
+
+
+class _Stop(BaseException):
+    """Raised when a program runs too many steps, usually because of an endless loop."""
+
+
+async def ask_input(prompt=""):
+    answer = await askInput(str(prompt))
+    return str(answer)
+
+
+class _AwaitInput(ast.NodeTransformer):
+    """Turns each input(...) call into await __ask_input(...), so the page can wait for the typed answer."""
+
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        if isinstance(node.func, ast.Name) and node.func.id == "input":
+            node.func = ast.Name(id="__ask_input", ctx=ast.Load())
+            return ast.Await(value=node)
+        return node
+
+
+def _make_tracer(limit):
+    count = [0]
+
+    def local_trace(frame, event, arg):
+        if event == "line":
+            count[0] += 1
+            if count[0] > limit:
+                raise _Stop()
+        return local_trace
+
+    def global_trace(frame, event, arg):
+        if frame.f_code.co_filename == "<student>":
+            return local_trace
+        return None
+
+    return global_trace
+
+
+def _explain(exc):
+    if isinstance(exc, SyntaxError):
+        return "SyntaxError on line " + str(exc.lineno) + ": " + str(exc.msg)
+    line = None
+    tb = exc.__traceback__
+    while tb is not None:
+        if tb.tb_frame.f_code.co_filename == "<student>":
+            line = tb.tb_lineno
+        tb = tb.tb_next
+    where = " on line " + str(line) if line else ""
+    return type(exc).__name__ + where + ": " + str(exc)
+
+
+async def run_student(source, max_steps):
+    try:
+        tree = _AwaitInput().visit(ast.parse(source, filename="<student>"))
+        body = tree.body or [ast.Pass()]
+        main = ast.AsyncFunctionDef(
+            name="student_main",
+            args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[],
+                               kw_defaults=[], kwarg=None, defaults=[]),
+            body=body,
+            decorator_list=[],
+            returns=None,
+            type_comment=None,
+        )
+        module = ast.fix_missing_locations(ast.Module(body=[main], type_ignores=[]))
+        namespace = {"__ask_input": ask_input}
+        exec(compile(module, "<student>", "exec"), namespace)
+        sys.settrace(_make_tracer(max_steps))
+        try:
+            await namespace["student_main"]()
+        finally:
+            sys.settrace(None)
+        result = {"ok": True, "error": "", "limited": False}
+    except _Stop:
+        result = {"ok": False, "limited": True,
+                  "error": "Stopped: your program ran for too long. Check that your loop can finish."}
+    except BaseException as exc:
+        result = {"ok": False, "limited": False, "error": _explain(exc)}
+    return json.dumps(result)
+
+
+def analyse(source):
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return json.dumps({"error": True})
+    names = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    names.add(target.id)
+    info = {"error": False, "assigns": False, "if_compare": False, "maths": False,
+            "while": False, "input": False, "print": False}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            info["assigns"] = True
+            if isinstance(node.value, ast.BinOp) and any(isinstance(n, ast.Name) for n in ast.walk(node.value)):
+                info["maths"] = True
+        elif isinstance(node, ast.AugAssign):
+            info["maths"] = True
+        elif isinstance(node, ast.If) and isinstance(node.test, ast.Compare):
+            used = {n.id for n in ast.walk(node.test) if isinstance(n, ast.Name)}
+            if used & names:
+                info["if_compare"] = True
+        elif isinstance(node, ast.While):
+            info["while"] = True
+        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            if node.func.id == "input":
+                info["input"] = True
+            if node.func.id == "print":
+                info["print"] = True
+    return json.dumps(info)
+</script>
+
+<script>
+(() => {
+  'use strict';
+
+  const MAX_STEPS = 200000;
+  const isAdmin = new URLSearchParams(location.search).get('admin') === 'true';
+
+  // Colours for each kind of block.
+  const CATS = { input: '#0B6E66', out: '#2357B8', vars: '#B8600F', sel: '#6B3FB0', loop: '#17703F' };
+
+  const OPS = [['+', '+'], ['-', '−'], ['*', '×'], ['/', '÷']];
+  const CMPS = [['==', '='], ['!=', '≠'], ['<', '<'], ['>', '>'], ['<=', '≤'], ['>=', '≥']];
+
+  // Token kinds that make up a block's shape:
+  // word: fixed text. text: free text. name: variable name. value: a typed value or a dragged variable.
+  // pick: a drop-down. body: a set of blocks inside a C-shaped block.
+  const W = (text) => ({ t: 'word', text });
+  const TEXT = (key, ph) => ({ t: 'text', key, ph });
+  const NAME = (key) => ({ t: 'name', key });
+  const VAL = (key, when) => ({ t: 'value', key, when });
+  const PICK = (key, options) => ({ t: 'pick', key, options });
+  const BODY = (key) => ({ t: 'body', key });
+
+  const BLOCKS = {
+    ask: { label: 'ask', cat: 'input', tokens: [W('ask'), TEXT('q', 'question'), W('and save as'), NAME('n'), PICK('ty', [['text', 'text'], ['number', 'number']])] },
+    print: { label: 'print', cat: 'out', tokens: [W('print'), VAL('v')] },
+    set: { label: 'set', cat: 'vars', tokens: [W('set'), NAME('n'), W('to'), VAL('a'), PICK('op', [['', 'no maths'], ...OPS]), VAL('b', 'op')] },
+    change: { label: 'change', cat: 'vars', tokens: [W('change'), NAME('n'), W('by'), PICK('op', OPS), VAL('b')] },
+    if: { label: 'if', cat: 'sel', tokens: [W('if'), VAL('a'), PICK('c', CMPS), VAL('b'), W('then'), BODY('body')] },
+    ifelse: { label: 'if else', cat: 'sel', tokens: [W('if'), VAL('a'), PICK('c', CMPS), VAL('b'), W('then'), BODY('body'), W('else'), BODY('alt')] },
+    repeat: { label: 'repeat', cat: 'loop', tokens: [W('repeat'), VAL('times'), W('times'), BODY('body')] },
+    while: { label: 'while', cat: 'loop', tokens: [W('while'), VAL('a'), PICK('c', CMPS), VAL('b'), W('do'), BODY('body')] },
+  };
+  const PAL_ORDER = ['ask', 'print', 'set', 'change', 'if', 'ifelse', 'repeat', 'while'];
+
+  // Words Python will not accept as variable names, including the builtins the challenges use.
+  const PY_WORDS = new Set(['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break', 'class',
+    'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in',
+    'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield',
+    'print', 'input', 'int', 'range']);
+
+  // The exact wording each challenge asks for. The checks look for these strings.
+  const WELCOME = 'Welcome to Year 9 Computing!';
+  const QUESTION = 'What is your favourite subject?';
+  const AGE_MESSAGE = 'You can join the club';
+
+  const LEVELS = [
+    {
+      title: 'Print something',
+      brief: 'Drag a print block into the program. Type this message in it, exactly as shown: Welcome to Year 9 Computing!',
+      hint: 'print [Welcome to Year 9 Computing!]',
+    },
+    {
+      title: 'Ask for an input and print it',
+      brief: 'Drag an ask block. Ask this question, exactly as shown: What is your favourite subject? Save the answer in a variable called subject. Then drag a print block and drop the subject variable into it.',
+      hint: 'ask [What is your favourite subject?] and save as [subject]\nprint [subject]',
+    },
+    {
+      title: 'Compare a variable with an if block',
+      brief: 'Use a set block to make a variable called age, set to 14. Use an if block to check whether age is at least 13. If it is, print this message: You can join the club',
+      hint: 'set [age] to [14]\nif [age] ≥ [13] then\n    print [You can join the club]',
+    },
+    {
+      title: 'Do some maths with a variable',
+      brief: 'Make a variable called price, set to 4. Set total to price × 3, then print total. The number printed should be 12.',
+      hint: 'set [price] to [4]\nset [total] to [price] × [3]\nprint [total]',
+    },
+    {
+      title: 'Make a while loop',
+      brief: 'Make a variable called count, set to 1. Use a while block that repeats while count is at most 3. Inside it, print count, then change count by + 1. The terminal should show 1, 2 and 3, one per line.',
+      hint: 'set [count] to [1]\nwhile [count] ≤ [3] do\n    print [count]\n    change [count] by [+] [1]',
+    },
+  ];
+
+  const pass = (msg) => ({ ok: true, msg });
+  const fail = (msg) => ({ ok: false, msg });
+  const NOT_READY = 'Something in your program could not be read. Look for red blocks and fill in any empty slots.';
+
+  // Each check receives the Python code made from the blocks and an api with run(source, inputs) and analyse(source).
+  const CHECKS = [
+    async (code, api) => {
+      const r = await api.run(code, []);
+      if (!r.ok) return [fail(r.error)];
+      return [r.output.some((line) => line.trim() !== '')
+        ? pass('Your program printed something.')
+        : fail('Nothing was printed. Add a print block and type a message in it.')];
+    },
+    async (code, api) => {
+      const info = api.analyse(code);
+      if (info.error) return [fail(NOT_READY)];
+      const out = [];
+      if (!info.input) out.push(fail('Add an ask block and save its answer in a variable, such as name.'));
+      for (const name of ['Ada', 'Grace']) {
+        const r = await api.run(code, [name]);
+        if (!r.ok) { out.push(fail(r.error)); break; }
+        out.push(r.output.some((line) => line.includes(name))
+          ? pass(`Typed "${name}" and it was printed back.`)
+          : fail(`Typed "${name}", but it was not printed. Drag the variable into a print block.`));
+      }
+      return out;
+    },
+    async (code, api) => {
+      const info = api.analyse(code);
+      if (info.error) return [fail(NOT_READY)];
+      const r = await api.run(code, []);
+      const out = [
+        info.assigns ? pass('You made a variable with a set block.') : fail('Add a set block to make a variable, for example set age to 14.'),
+        info.if_compare
+          ? pass('You compared your variable in an if block.')
+          : fail('Add an if block that compares your variable, for example age ≥ 13.'),
+      ];
+      out.push(r.ok ? pass('The program ran without errors.') : fail(r.error));
+      return out;
+    },
+    async (code, api) => {
+      const info = api.analyse(code);
+      if (info.error) return [fail(NOT_READY)];
+      const r = await api.run(code, []);
+      const out = [
+        info.maths
+          ? pass('You used a variable in a calculation.')
+          : fail('Do a calculation with a variable, for example set total to price × 3.'),
+      ];
+      if (!r.ok) out.push(fail(r.error));
+      else out.push(r.output.length > 0 ? pass('You printed the answer.') : fail('Print the answer with a print block.'));
+      return out;
+    },
+    async (code, api) => {
+      const info = api.analyse(code);
+      if (info.error) return [fail(NOT_READY)];
+      const r = await api.run(code, []);
+      const out = [
+        info.while ? pass('You used a while block.') : fail('Add a while block, for example while count ≤ 3.'),
+      ];
+      if (!r.ok) out.push(fail(r.error));
+      else out.push(r.output.length >= 2
+        ? pass('The loop printed at least two lines and finished.')
+        : fail('The loop should print at least two lines.'));
+      return out;
+    },
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const el = {
+    badge: $('adminBadge'), levels: $('levels'), levelLabel: $('levelLabel'), levelTitle: $('levelTitle'),
+    levelBrief: $('levelBrief'), hint: $('hint'), hintCode: $('hintCode'), results: $('results'),
+    verdict: $('verdict'), palette: $('palette'), varChips: $('varChips'), workspace: $('workspace'),
+    blockCount: $('blockCount'), status: $('status'), pyPreview: $('pyPreview'),
+    run: $('run'), check: $('check'), next: $('next'), skip: $('skip'), reset: $('reset'),
+    term: $('term'), clear: $('clear'), inputRow: $('inputRow'), prompt: $('prompt'), termInput: $('termInput'),
+  };
+
+  // Tiny element builder. Keys: class, text, value, on<event>, anything else becomes an attribute.
+  function h(tag, props, ...kids) {
+    const node = document.createElement(tag);
+    Object.entries(props || {}).forEach(([key, val]) => {
+      if (val === undefined || val === null || val === false) return;
+      if (key === 'class') node.className = val;
+      else if (key === 'text') node.textContent = val;
+      else if (key === 'value') node.value = val;
+      else if (key.startsWith('on')) node.addEventListener(key.slice(2), val);
+      else node.setAttribute(key, val === true ? '' : val);
+    });
+    kids.flat().forEach((kid) => {
+      if (kid === undefined || kid === null || kid === false) return;
+      node.appendChild(typeof kid === 'string' ? document.createTextNode(kid) : kid);
+    });
+    return node;
+  }
+
+  let pyReady = false;
+  let runFn = null;
+  let analyseFn = null;
+  let busy = false;
+  let current = 0;
+  const passed = new Set();
+  const programs = LEVELS.map(() => []);
+  let program = programs[0];      // the blocks for the current level
+  let idCounter = 0;
+  let mode = null;                // null: interactive terminal. Object: a scripted check run.
+  let pendingInput = null;        // resolves the terminal input row
+  let drag = null;                // the drag in progress, if any
+  let justDragged = false;        // stops a drag from also counting as a click
+  let hoverEl = null;
+
+  // ---------- Terminal ----------
+
+  function termLine(text, kind) {
+    const div = document.createElement('div');
+    div.className = 'line ' + kind;
+    div.textContent = text;
+    el.term.appendChild(div);
+    el.term.scrollTop = el.term.scrollHeight;
+  }
+
+  function sink(line) {
+    const text = String(line);
+    if (mode) mode.lines.push(text);
+    else termLine(text, 'out');
+  }
+
+  function askInput(prompt) {
+    const text = String(prompt);
+    if (mode) return Promise.resolve(mode.inputs.length ? mode.inputs.shift() : '');
+    return new Promise((resolve) => {
+      el.prompt.textContent = text;
+      el.inputRow.hidden = false;
+      el.termInput.value = '';
+      el.termInput.focus();
+      pendingInput = (value) => {
+        el.inputRow.hidden = true;
+        termLine(text + value, 'echo');
+        resolve(value);
+      };
+    });
+  }
+
+  el.termInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && pendingInput) {
+      event.preventDefault();
+      const answer = pendingInput;
+      pendingInput = null;
+      answer(el.termInput.value);
+    }
+  });
+
+  async function execute(source, scripted) {
+    const lines = scripted ? [] : null;
+    mode = scripted ? { lines, inputs: scripted.slice() } : null;
+    let result;
+    try {
+      result = JSON.parse(await runFn(source, MAX_STEPS));
+    } catch (err) {
+      result = { ok: false, error: String(err), limited: false };
+    } finally {
+      mode = null;
+    }
+    return { ok: !!result.ok, error: result.error || '', limited: !!result.limited, output: lines || [] };
+  }
+
+  // ---------- Program model ----------
+
+  const nm = (b) => String(b.f.n || '').trim();
+
+  function validName(name) {
+    return typeof name === 'string' && /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) && !PY_WORDS.has(name);
+  }
+
+  function walk(list, fn) {
+    list.forEach((b) => { fn(b); walk(b.body, fn); walk(b.alt, fn); });
+  }
+
+  function findBlock(list, id) {
+    for (const b of list) {
+      if (b.id === id) return { block: b, list };
+      const inner = findBlock(b.body, id) || findBlock(b.alt, id);
+      if (inner) return inner;
+    }
+    return null;
+  }
+
+  function idsWithin(block) {
+    const ids = new Set([block.id]);
+    walk(block.body, (b) => ids.add(b.id));
+    walk(block.alt, (b) => ids.add(b.id));
+    return ids;
+  }
+
+  // A stack is the main program ('main') or the inside of a block ('blockId:body' or 'blockId:alt').
+  function stackFor(stackId) {
+    if (stackId === 'main') return program;
+    const [id, key] = stackId.split(':');
+    const hit = findBlock(program, id);
+    return hit ? hit.block[key] : null;
+  }
+
+  function makeBlock(type) {
+    const b = { id: 'b' + (++idCounter), type, f: {}, v: {}, body: [], alt: [] };
+    BLOCKS[type].tokens.forEach((tk) => {
+      if (tk.t === 'text' || tk.t === 'name') b.f[tk.key] = '';
+      else if (tk.t === 'pick') b.f[tk.key] = tk.options[0][0];
+      else if (tk.t === 'value') b.v[tk.key] = { text: '' };
+    });
+    return b;
+  }
+
+  function takeBlock(id) {
+    const hit = findBlock(program, id);
+    if (!hit) return null;
+    hit.list.splice(hit.list.indexOf(hit.block), 1);
+    return hit.block;
+  }
+
+  function putBlock(block, stackId, beforeId) {
+    const list = stackFor(stackId);
+    if (!list) return;
+    const i = beforeId ? list.findIndex((b) => b.id === beforeId) : -1;
+    if (i < 0) list.push(block);
+    else list.splice(i, 0, block);
+  }
+
+  function setSlot(blockId, key, value) {
+    const hit = findBlock(program, blockId);
+    if (hit) hit.block.v[key] = value;
+  }
+
+  function clearSlotRef(ref) {
+    const [id, key] = ref.split('.');
+    setSlot(id, key, { text: '' });
+  }
+
+  function allNames() {
+    const names = [];
+    walk(program, (b) => {
+      if (b.type !== 'ask' && b.type !== 'set') return;
+      const n = nm(b);
+      if (validName(n) && !names.includes(n)) names.push(n);
+    });
+    return names;
+  }
+
+  // ---------- Python code from blocks ----------
+
+  // Returns the Python for a value slot, or null if it is empty.
+  function valueCode(slot) {
+    if (!slot) return null;
+    if (slot.var !== undefined) return slot.var;
+    const raw = slot.text;
+    if (!raw || raw.trim() === '') return null;
+    const t = raw.trim();
+    if (/^-?\d+(\.\d+)?$/.test(t)) return t;
+    return JSON.stringify(raw);
+  }
+
+  // Returns a short note for a block that is not finished, or null.
+  function problemOf(b) {
+    for (const tk of BLOCKS[b.type].tokens) {
+      if (tk.t === 'name' && !validName(nm(b))) return 'name needed';
+      if (tk.t === 'value' && (!tk.when || b.f[tk.when]) && valueCode(b.v[tk.key]) === null) return 'value needed';
+    }
+    return null;
+  }
+
+  function genStack(list, depth) {
+    const lines = [];
+    list.forEach((b) => lines.push(...genBlock(b, depth)));
+    return lines;
+  }
+
+  function genBlock(b, depth) {
+    const pad = '    '.repeat(depth);
+    const inner = (list) => {
+      const lines = genStack(list, depth + 1);
+      return lines.length ? lines : [pad + '    pass'];
+    };
+    const problem = problemOf(b);
+    if (problem) return [pad + 'pass  # ' + problem];
+    const v = (key) => valueCode(b.v[key]);
+    const test = () => v('a') + ' ' + b.f.c + ' ' + v('b') + ':';
+    switch (b.type) {
+      case 'ask': {
+        const q = b.f.q;
+        const call = q.trim() ? 'input(' + JSON.stringify(q.endsWith(' ') ? q : q + ' ') + ')' : 'input()';
+        return [pad + nm(b) + ' = ' + (b.f.ty === 'number' ? 'int(' + call + ')' : call)];
+      }
+      case 'print':
+        return [pad + 'print(' + v('v') + ')'];
+      case 'set':
+        return [pad + nm(b) + ' = ' + (b.f.op ? v('a') + ' ' + b.f.op + ' ' + v('b') : v('a'))];
+      case 'change':
+        return [pad + nm(b) + ' = ' + nm(b) + ' ' + b.f.op + ' ' + v('b')];
+      case 'if':
+        return [pad + 'if ' + test(), ...inner(b.body)];
+      case 'ifelse':
+        return [pad + 'if ' + test(), ...inner(b.body), pad + 'else:', ...inner(b.alt)];
+      case 'repeat':
+        return [pad + 'for _ in range(' + v('times') + '):', ...inner(b.body)];
+      case 'while':
+        return [pad + 'while ' + test(), ...inner(b.body)];
+      default:
+        return [];
+    }
+  }
+
+  function genProgram() {
+    const lines = genStack(program, 0);
+    return lines.length ? lines.join('\n') + '\n' : '';
+  }
+
+  // ---------- Rendering ----------
+
+  function slotNode(b, tk) {
+    const ref = b.id + '.' + tk.key;
+    const slot = b.v[tk.key] || { text: '' };
+    if (slot.var !== undefined) {
+      const known = allNames().includes(slot.var);
+      return h('span', { class: 'slot', 'data-slot': ref },
+        h('span', { class: 'chip' + (known ? '' : ' missing'), 'data-var': slot.var, text: slot.var },
+          h('button', { type: 'button', class: 'x', 'aria-label': 'Remove this variable',
+            onclick: () => { b.v[tk.key] = { text: '' }; renderAll(); } }, '×')));
+    }
+    const input = h('input', { class: 'fld v', type: 'text', 'aria-label': 'Typed value', placeholder: 'value',
+      value: slot.text || '',
+      oninput: (e) => { b.v[tk.key] = { text: e.target.value }; refreshLight(); } });
+    return h('span', { class: 'slot', 'data-slot': ref }, input);
+  }
+
+  function tokenNode(b, tk) {
+    if (tk.t === 'word') return h('span', { class: 'word', text: tk.text });
+    if (tk.t === 'text') {
+      return h('input', { class: 'fld q', type: 'text', placeholder: tk.ph, 'aria-label': tk.ph,
+        value: b.f[tk.key],
+        oninput: (e) => { b.f[tk.key] = e.target.value; refreshLight(); } });
+    }
+    if (tk.t === 'name') {
+      return h('input', { class: 'fld nm', type: 'text', placeholder: 'name', 'aria-label': 'Variable name',
+        value: b.f[tk.key],
+        oninput: (e) => {
+          b.f[tk.key] = e.target.value;
+          const n = e.target.value.trim();
+          e.target.classList.toggle('invalid', !!n && !validName(n));
+          refreshLight();
+        } });
+    }
+    if (tk.t === 'pick') {
+      const select = h('select', { class: 'fld', 'aria-label': 'Choose an option',
+        onchange: (e) => { b.f[tk.key] = e.target.value; renderAll(); } });
+      tk.options.forEach(([value, label]) => select.appendChild(h('option', { value, text: label })));
+      select.value = b.f[tk.key];
+      return select;
+    }
+    return slotNode(b, tk);
+  }
+
+  function dropZone(stackId, beforeId) {
+    return h('div', { class: 'drop', 'data-drop': stackId, 'data-before': beforeId });
+  }
+
+  function stackNodes(list, stackId) {
+    const nodes = [];
+    list.forEach((b) => {
+      nodes.push(dropZone(stackId, b.id));
+      nodes.push(blockNode(b));
+    });
+    nodes.push(dropZone(stackId, ''));
+    return nodes;
+  }
+
+  function bodyNode(b, key) {
+    return h('div', { class: 'body' }, stackNodes(b[key], b.id + ':' + key));
+  }
+
+  function blockNode(b) {
+    const spec = BLOCKS[b.type];
+    const parts = [];
+    let seg = h('div', { class: 'bhead' });
+    parts.push(seg);
+    spec.tokens.forEach((tk) => {
+      if (tk.t === 'body') {
+        parts.push(bodyNode(b, tk.key));
+        seg = h('div', { class: 'bhead' });
+        parts.push(seg);
+        return;
+      }
+      if (tk.when && !b.f[tk.when]) return;
+      seg.appendChild(tokenNode(b, tk));
+    });
+    const kept = parts.filter((p) => p.classList.contains('body') || p.childNodes.length > 0);
+    kept[0].appendChild(h('button', { type: 'button', class: 'del', 'aria-label': 'Delete this block',
+      onclick: () => { takeBlock(b.id); renderAll(); } }, '×'));
+    const node = h('div', { class: 'block' + (problemOf(b) ? ' bad' : ''), 'data-block': b.id }, kept);
+    node.style.setProperty('--c', CATS[spec.cat]);
+    return node;
+  }
+
+  function renderWorkspace() {
+    el.workspace.innerHTML = '';
+    if (!program.length) el.workspace.appendChild(h('p', { class: 'empty-note', text: 'Drag a block from the toolbox to start your program.' }));
+    stackNodes(program, 'main').forEach((node) => el.workspace.appendChild(node));
+  }
+
+  function renderPalette() {
+    el.palette.innerHTML = '';
+    PAL_ORDER.forEach((type) => {
+      const spec = BLOCKS[type];
+      const kids = [];
+      spec.tokens.forEach((tk) => {
+        if (tk.t === 'word') kids.push(tk.text + ' ');
+        else if (tk.t === 'body') kids.push(h('span', { class: 'pbody', text: 'put blocks inside' }));
+        else if (tk.t === 'pick' && tk.options[0][0] === '') return;
+        else if (tk.t === 'value' && tk.when) return;
+        else if (tk.t === 'pick') kids.push(h('span', { class: 'pv', text: tk.options[0][1] }), ' ');
+        else if (tk.t === 'value') kids.push(h('span', { class: 'pv', text: 'value' }), ' ');
+        else kids.push(h('span', { class: 'pf', text: tk.t === 'name' ? 'name' : tk.ph }), ' ');
+      });
+      const node = h('button', { type: 'button', class: 'pal', 'data-new': type,
+        'aria-label': 'Add a ' + spec.label + ' block' }, kids);
+      node.style.setProperty('--c', CATS[spec.cat]);
+      el.palette.appendChild(node);
+    });
+  }
+
+  function renderTray() {
+    el.varChips.innerHTML = '';
+    const names = allNames();
+    if (!names.length) {
+      el.varChips.appendChild(h('span', { class: 'vars-none', text: 'Use an ask or set block to make one.' }));
+      return;
+    }
+    names.forEach((n) => el.varChips.appendChild(h('span', { class: 'chip', 'data-var': n, text: n })));
+  }
+
+  function updateStatus() {
+    let count = 0;
+    let open = 0;
+    walk(program, (b) => { count += 1; if (problemOf(b)) open += 1; });
+    el.blockCount.textContent = count ? '(' + count + (count === 1 ? ' block)' : ' blocks)') : '';
+    if (!count) el.status.textContent = '';
+    else if (open) el.status.textContent = open + (open === 1 ? ' red block needs' : ' red blocks need') + ' a name or value before it can run.';
+    else el.status.textContent = 'Every block is filled in.';
+  }
+
+  function updatePreview() {
+    el.pyPreview.textContent = genProgram() || '# The Python code for your blocks appears here.';
+  }
+
+  // Light refresh while typing: no rebuild, so the cursor stays where it is.
+  function refreshLight() {
+    renderTray();
+    updateStatus();
+    updatePreview();
+    const names = allNames();
+    el.workspace.querySelectorAll('.block').forEach((node) => {
+      const hit = findBlock(program, node.dataset.block);
+      if (hit) node.classList.toggle('bad', !!problemOf(hit.block));
+    });
+    el.workspace.querySelectorAll('.slot .chip').forEach((chip) => {
+      chip.classList.toggle('missing', !names.includes(chip.dataset.var));
+    });
+  }
+
+  function renderAll() {
+    renderWorkspace();
+    refreshLight();
+  }
+
+  function renderBrief() {
+    const level = LEVELS[current];
+    el.levelLabel.textContent = 'Challenge ' + (current + 1) + ' of ' + LEVELS.length;
+    el.levelTitle.textContent = level.title;
+    el.levelBrief.textContent = level.brief;
+    el.hintCode.textContent = level.hint;
+    el.hint.open = false;
+  }
+
+  function renderLevels() {
+    el.levels.innerHTML = '';
+    LEVELS.forEach((level, index) => {
+      const unlocked = isAdmin || index === 0 || passed.has(index - 1) || passed.has(index);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'level-tab'
+        + (index === current ? ' active' : '')
+        + (passed.has(index) ? ' done' : '');
+      button.textContent = String(index + 1);
+      button.disabled = !unlocked;
+      button.setAttribute('aria-label', 'Challenge ' + (index + 1) + ': ' + level.title + (unlocked ? '' : ' (locked)'));
+      button.setAttribute('aria-current', index === current ? 'step' : 'false');
+      button.addEventListener('click', () => goTo(index));
+      el.levels.appendChild(button);
+    });
+  }
+
+  function refresh() {
+    const ready = pyReady && !busy;
+    el.run.disabled = !ready;
+    el.check.disabled = !ready;
+    el.reset.disabled = busy;
+    const hasNext = current < LEVELS.length - 1;
+    el.next.hidden = !(passed.has(current) && hasNext);
+    el.skip.hidden = !(isAdmin && hasNext);
+    renderLevels();
+  }
+
+  // ---------- Drag and drop (pointer events, so it works with a mouse, pen or touch) ----------
+
+  function stopListening() {
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onCancel);
+  }
+
+  function onDown(event) {
+    justDragged = false;
+    if (drag || event.button) return;
+    const t = event.target;
+    if (!(t instanceof Element)) return;
+    let start = null;
+    const pal = t.closest('.pal');
+    if (pal) {
+      const type = pal.dataset.new;
+      start = { kind: 'new', type, label: BLOCKS[type].label, color: CATS[BLOCKS[type].cat] };
+    } else if (t.closest('button, input, select, textarea')) {
+      return;
+    } else if (t.closest('.chip')) {
+      const chip = t.closest('.chip');
+      const slot = chip.closest('.slot');
+      start = { kind: 'var', name: chip.dataset.var, from: slot ? slot.dataset.slot : null,
+        label: chip.dataset.var, color: CATS.vars };
+    } else if (t.closest('.bhead')) {
+      const node = t.closest('.block');
+      const hit = node && findBlock(program, node.dataset.block);
+      if (!hit) return;
+      const type = hit.block.type;
+      start = { kind: 'move', id: hit.block.id, label: BLOCKS[type].label, color: CATS[BLOCKS[type].cat] };
+    } else {
+      return;
+    }
+    drag = Object.assign(start, { x0: event.clientX, y0: event.clientY, started: false, ghost: null });
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
+  }
+
+  function onMove(event) {
+    if (!drag) return;
+    if (!drag.started) {
+      if (Math.hypot(event.clientX - drag.x0, event.clientY - drag.y0) < 5) return;
+      drag.started = true;
+      drag.ghost = h('div', { class: 'ghost', text: drag.label });
+      drag.ghost.style.background = drag.color;
+      document.body.appendChild(drag.ghost);
+      document.body.classList.add('dragging');
+    }
+    drag.ghost.style.left = event.clientX + 'px';
+    drag.ghost.style.top = event.clientY + 'px';
+    setHover(targetAt(event.clientX, event.clientY, drag.kind));
+  }
+
+  function onUp(event) {
+    const d = drag;
+    stopListening();
+    drag = null;
+    if (!d || !d.started) return;
+    justDragged = true;
+    // Find the drop target while the drop zones are still open. Removing the
+    // dragging class first shrinks the zones, so the pointer would miss them.
+    const target = targetAt(event.clientX, event.clientY, d.kind);
+    d.ghost.remove();
+    document.body.classList.remove('dragging');
+    setHover(null);
+    if (applyDrop(d, target)) renderAll();
+  }
+
+  function onCancel() {
+    const d = drag;
+    stopListening();
+    drag = null;
+    if (d && d.ghost) d.ghost.remove();
+    document.body.classList.remove('dragging');
+    setHover(null);
+  }
+
+  function targetAt(x, y, kind) {
+    const node = document.elementFromPoint(x, y);
+    if (!node) return null;
+    const trash = node.closest('[data-trash]');
+    if (trash) return { kind: 'trash', el: trash };
+    const slot = node.closest('[data-slot]');
+    if (slot && kind === 'var') return { kind: 'slot', el: slot };
+    const zone = node.closest('[data-drop]');
+    if (zone && kind !== 'var') return { kind: 'drop', el: zone };
+    return null;
+  }
+
+  function setHover(target) {
+    const next = target ? target.el : null;
+    if (next === hoverEl) return;
+    if (hoverEl) hoverEl.classList.remove('hover');
+    hoverEl = next;
+    if (hoverEl) hoverEl.classList.add('hover');
+  }
+
+  // Returns true if the program changed.
+  function applyDrop(d, target) {
+    if (!target) return false;
+    if (target.kind === 'trash') {
+      if (d.kind === 'move') { takeBlock(d.id); return true; }
+      if (d.kind === 'var' && d.from) { clearSlotRef(d.from); return true; }
+      return false;
+    }
+    if (target.kind === 'slot') {
+      if (d.kind !== 'var') return false;
+      const ref = target.el.dataset.slot;
+      if (ref === d.from) return false;
+      if (d.from) clearSlotRef(d.from);
+      const [id, key] = ref.split('.');
+      setSlot(id, key, { var: d.name });
+      return true;
+    }
+    if (target.kind === 'drop') {
+      const stackId = target.el.dataset.drop;
+      const before = target.el.dataset.before;
+      if (d.kind === 'new') {
+        putBlock(makeBlock(d.type), stackId, before);
+        return true;
+      }
+      if (d.kind === 'move') {
+        if (before === d.id) return false;
+        const hit = findBlock(program, d.id);
+        if (!hit) return false;
+        // A block cannot be dropped inside itself.
+        if (idsWithin(hit.block).has(stackId.split(':')[0])) return false;
+        takeBlock(d.id);
+        putBlock(hit.block, stackId, before);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Click to add a block at the end of the program (also works with the keyboard).
+  function onPaletteClick(event) {
+    if (justDragged) return;
+    const pal = event.target.closest ? event.target.closest('.pal') : null;
+    if (!pal) return;
+    putBlock(makeBlock(pal.dataset.new), 'main', '');
+    renderAll();
+  }
+
+  // ---------- Levels, checks and running ----------
+
+  // Confetti from the top of the page. Skipped when the viewer asks for less motion.
+  function celebrate() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const layer = document.createElement('div');
+    layer.className = 'confetti';
+    layer.setAttribute('aria-hidden', 'true');
+    const colours = ['#02C39A', '#F3A712', '#2357B8', '#6B3FB0', '#FF6B5E', '#FFD23F', '#0B6E66', '#B8600F'];
+    for (let i = 0; i < 140; i += 1) {
+      const piece = document.createElement('span');
+      piece.style.left = (Math.random() * 100).toFixed(1) + '%';
+      piece.style.setProperty('--col', colours[i % colours.length]);
+      piece.style.setProperty('--w', (6 + Math.random() * 6).toFixed(1) + 'px');
+      piece.style.setProperty('--h', (10 + Math.random() * 8).toFixed(1) + 'px');
+      piece.style.setProperty('--drift', ((Math.random() - 0.5) * 240).toFixed(0) + 'px');
+      piece.style.setProperty('--spin', ((Math.random() < 0.5 ? -1 : 1) * (360 + Math.random() * 720)).toFixed(0) + 'deg');
+      piece.style.setProperty('--dur', (2.4 + Math.random() * 1.6).toFixed(2) + 's');
+      piece.style.setProperty('--delay', (Math.random() * 0.4).toFixed(2) + 's');
+      layer.appendChild(piece);
+    }
+    document.body.appendChild(layer);
+    setTimeout(() => layer.remove(), 4500);
+  }
+
+  function showResults(results) {
+    el.results.innerHTML = '';
+    results.forEach((result) => {
+      const item = document.createElement('li');
+      item.className = result.ok ? 'ok' : 'bad';
+      item.textContent = (result.ok ? 'Passed: ' : 'Not yet: ') + result.msg;
+      el.results.appendChild(item);
+    });
+    el.results.hidden = false;
+    const allPass = results.length > 0 && results.every((result) => result.ok);
+    if (!allPass) {
+      el.verdict.textContent = 'Not quite yet. Read the notes above and try again.';
+    } else if (passed.size === LEVELS.length) {
+      el.verdict.textContent = 'All five challenges are complete.';
+    } else {
+      el.verdict.textContent = 'Challenge passed. Press Next challenge to continue.';
+    }
+  }
+
+  async function runInteractive() {
+    if (busy || !pyReady) return;
+    busy = true;
+    refresh();
+    termLine('$ python main.py', 'sys');
+    const result = await execute(genProgram(), null);
+    el.inputRow.hidden = true;
+    pendingInput = null;
+    if (result.ok) termLine('Program finished.', 'sys');
+    else termLine(result.error, 'err');
+    busy = false;
+    refresh();
+  }
+
+  async function runCheck() {
+    if (busy || !pyReady) return;
+    busy = true;
+    refresh();
+    const api = {
+      run: (source, inputs) => execute(source, inputs),
+      analyse: (source) => JSON.parse(analyseFn(source)),
+    };
+    let results;
+    try {
+      results = await CHECKS[current](genProgram(), api);
+    } catch (err) {
+      results = [fail('Something went wrong while checking: ' + err)];
+    }
+    showResults(results);
+    if (results.length > 0 && results.every((result) => result.ok)) {
+      passed.add(current);
+      termLine('Challenge ' + (current + 1) + ' passed.', 'ok');
+      celebrate();
+      if (passed.size === LEVELS.length) el.verdict.textContent = 'All five challenges are complete.';
+    }
+    busy = false;
+    refresh();
+  }
+
+  function goTo(index) {
+    if (busy || index === current) return;
+    current = index;
+    program = programs[current];
+    el.results.hidden = true;
+    el.results.innerHTML = '';
+    el.verdict.textContent = '';
+    renderBrief();
+    renderAll();
+    refresh();
+  }
+
+  function skipLevel() {
+    if (!isAdmin || busy) return;
+    passed.add(current);
+    if (current < LEVELS.length - 1) goTo(current + 1);
+    else refresh();
+  }
+
+  function clearProgram() {
+    if (busy) return;
+    program.length = 0;
+    renderAll();
+  }
+
+  // ---------- Boot ----------
+
+  async function boot() {
+    termLine('Loading Python. The first load can take a few seconds.', 'sys');
+    if (typeof loadPyodide !== 'function') {
+      termLine('Python could not load. Check your connection and reload the page.', 'err');
+      return;
+    }
+    try {
+      const pyodide = await loadPyodide({ stdout: sink, stderr: sink });
+      pyodide.globals.set('askInput', askInput);
+      await pyodide.runPythonAsync($('py-harness').textContent);
+      runFn = pyodide.globals.get('run_student');
+      analyseFn = pyodide.globals.get('analyse');
+      pyReady = true;
+      termLine('Python is ready. Press Run, or press Ctrl+Enter.', 'sys');
+    } catch (err) {
+      termLine('Python could not start: ' + err, 'err');
+    }
+    refresh();
+  }
+
+  if (isAdmin) el.badge.hidden = false;
+  renderPalette();
+  renderBrief();
+  renderAll();
+  termLine('Output from print() appears here. An ask block waits for you to type here.', 'sys');
+  refresh();
+
+  document.addEventListener('pointerdown', onDown);
+  el.palette.addEventListener('click', onPaletteClick);
+  el.run.addEventListener('click', runInteractive);
+  el.check.addEventListener('click', runCheck);
+  el.next.addEventListener('click', () => goTo(current + 1));
+  el.skip.addEventListener('click', skipLevel);
+  el.reset.addEventListener('click', clearProgram);
+  el.clear.addEventListener('click', () => { el.term.innerHTML = ''; });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      runInteractive();
+    }
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>
